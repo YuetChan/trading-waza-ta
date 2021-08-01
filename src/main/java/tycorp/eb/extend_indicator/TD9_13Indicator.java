@@ -1,23 +1,67 @@
 package tycorp.eb.extend_indicator;
 
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.Indicator;
-import org.ta4j.core.num.Num;
+import org.ta4j.core.indicators.CachedIndicator;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
-public class TD9_13Indicator implements Indicator {
+public class TD9_13Indicator extends CachedIndicator<Integer> {
 
-    @Override
-    public Object getValue(int i) {
-        return null;
+    private enum Setup { BULLISH, BEARISH }
+    private ClosePriceIndicator closePriceIndicator;
+
+    protected TD9_13Indicator(BarSeries barSeries) {
+        super(barSeries);
+        closePriceIndicator = new ClosePriceIndicator(barSeries);
     }
 
     @Override
-    public BarSeries getBarSeries() {
-        return null;
-    }
+    protected Integer calculate(int index) {
+        if(index < 4){
+            return 0;
+        }
 
-    @Override
-    public Num numOf(Number number) {
+        var initSetup =
+                closePriceIndicator.getValue(4).isGreaterThan(closePriceIndicator.getValue(0))
+                ? Setup.BULLISH : Setup.BEARISH;
+        var currSetup = initSetup;
+
+        var i = 5;
+        while(currSetup.equals(initSetup) && i < index){
+            currSetup = closePriceIndicator.getValue(i).isGreaterThan(closePriceIndicator.getValue(i - 4))
+                    ? Setup.BULLISH : Setup.BEARISH;
+            i ++;
+        }
+
+        if(i == index){
+            return 0;
+        }
+
+        var currCount = currSetup.equals(Setup.BULLISH) ? 1 : -1;
+        while(i < index){
+            var newSetup = closePriceIndicator.getValue(i).isGreaterThan(closePriceIndicator.getValue(i - 4))
+                    ? Setup.BULLISH : Setup.BEARISH;
+            if(currSetup.equals(newSetup)) {
+                if(currSetup.equals(Setup.BULLISH)) {
+                    if(currCount == 9){
+                        currCount = 1;
+                    }
+
+                    currCount ++;
+                }
+                if(currSetup.equals(Setup.BEARISH)) {
+                    if(currCount == -9){
+                        currCount = -1;
+                    }
+
+                    currCount --;
+                }
+
+
+            }
+
+            i ++;
+        }
+
         return null;
     }
 
