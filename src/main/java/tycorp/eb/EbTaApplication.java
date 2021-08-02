@@ -13,6 +13,7 @@ import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import tycorp.eb.extend_indicator.EbConsensioCrossIndicator;
 import tycorp.eb.extend_indicator.EbSMAIndicator;
+import tycorp.eb.extend_indicator.TD9_13Indicator;
 import tycorp.eb.script.EbCandle;
 import tycorp.eb.script.EbCandlesToTa4jBarSeries;
 
@@ -178,10 +179,13 @@ public class EbTaApplication {
                     new EbSMAIndicator(closePriceI, 50),
                     new EbSMAIndicator(closePriceI, 200));
 
+            var td9And13I = new TD9_13Indicator(barSeries);
+
             for(int i = 0; i < barSeries.getBarCount(); i++){
-                if(consensioCrossI.getValue(i)){
-                    System.out.println(barSeries.getBar(i));
-                }
+//                if(consensioCrossI.getValue(i)){
+//                    System.out.println(barSeries.getBar(i));
+//                }
+                System.out.println(td9And13I.getValue(i));
             }
 
         }
