@@ -7,27 +7,27 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 public class TD9_13Indicator extends CachedIndicator<Integer> {
 
     private enum Setup { BULLISH, BEARISH }
-    private ClosePriceIndicator closePriceIndicator;
+    private ClosePriceIndicator closePriceI;
 
     public TD9_13Indicator(BarSeries barSeries) {
         super(barSeries);
-        closePriceIndicator = new ClosePriceIndicator(barSeries);
+        closePriceI = new ClosePriceIndicator(barSeries);
     }
 
     @Override
     protected Integer calculate(int index) {
-        if(index < 5 || closePriceIndicator.getBarSeries().getBarCount() < 6){
+        if(index < 5 || closePriceI.getBarSeries().getBarCount() < 6){
             return 0;
         }
 
         var initSetup =
-                closePriceIndicator.getValue(4).isGreaterThan(closePriceIndicator.getValue(0))
+                closePriceI.getValue(4).isGreaterThan(closePriceI.getValue(0))
                 ? Setup.BULLISH : Setup.BEARISH;
         var currSetup = initSetup;
 
         var i = 5;
         while(currSetup.equals(initSetup) && i <= index){
-            currSetup = closePriceIndicator.getValue(i).isGreaterThan(closePriceIndicator.getValue(i - 4))
+            currSetup = closePriceI.getValue(i).isGreaterThan(closePriceI.getValue(i - 4))
                     ? Setup.BULLISH : Setup.BEARISH;
             i ++;
         }
@@ -38,7 +38,7 @@ public class TD9_13Indicator extends CachedIndicator<Integer> {
 
         var currCount = currSetup.equals(Setup.BULLISH) ? 1 : -1;
         while(i <= index){
-            var newSetup = closePriceIndicator.getValue(i).isGreaterThan(closePriceIndicator.getValue(i - 4))
+            var newSetup = closePriceI.getValue(i).isGreaterThan(closePriceI.getValue(i - 4))
                     ? Setup.BULLISH : Setup.BEARISH;
             if(currSetup.equals(newSetup)) {
                 if(currSetup.equals(Setup.BULLISH)) {
@@ -46,7 +46,6 @@ public class TD9_13Indicator extends CachedIndicator<Integer> {
                     if(currCount == 10){
                         currCount = 0;
                     }
-
                 }
 
                 if(currSetup.equals(Setup.BEARISH)) {
