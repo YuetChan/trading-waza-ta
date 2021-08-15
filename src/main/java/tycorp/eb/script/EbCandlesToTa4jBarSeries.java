@@ -8,62 +8,74 @@ import java.util.List;
 
 public class EbCandlesToTa4jBarSeries {
 
-    public enum Ta4jTimeframe { MINS, HOURLY, DAILY }
+    public enum Ta4jTimeframe {
+        MINS, HOURLY, DAILY
+    }
 
     public static BarSeries convert(List<EbCandle> candles, Ta4jTimeframe timeframe, int frequency) {
         if(timeframe.equals(Ta4jTimeframe.MINS)) {
             return candlesToBarSeriesMinsVariance(candles, frequency);
-        }else if(timeframe.equals(Ta4jTimeframe.DAILY)) {
-            return candlesToBarSeriesDaily(candles);
-        }else {
-            return null;
         }
+        if(timeframe.equals(Ta4jTimeframe.DAILY)) {
+            return candlesToBarSeriesDaily(candles);
+        }
+
+        return null;
     }
 
     private static BarSeries candlesToBarSeriesMinsVariance(List<EbCandle> candles, int frequency) {
         var barSeries = new BaseBarSeries();
+
         var factor = frequency / 5;
+        var factorCtr = 0;
 
-        for(int i = 0; i < candles.size(); i = i + factor){
-            var lastCandle = candles.get(i + factor - 1);
-
-            var open = candles.get(i).getOpen();
-            var close = lastCandle.getClose();
-
-            var high = 0d;
-            var low = 0d;
-            for(int j = i; j < i + factor; j++){
-                var tmpHigh = candles.get(j).getHigh();
-                high = high > tmpHigh ? high : tmpHigh;
-
-                var tmpLow = candles.get(j).getLow();
-                low = low > tmpLow ? low : tmpLow;
-            }
-
-            var endTimeZdt = lastCandle.getStartTimeZdt().plusMinutes(5);
-            barSeries.addBar(endTimeZdt, open, high, low, close);
-        }
-
-        var rmdr = candles.size() % factor;
-        var ith = candles.size() - rmdr;
-
-        var lastCandle = candles.get(candles.size() - 1);
-
-        var open = candles.get(ith).getOpen();
-        var close = lastCandle.getClose();
-
+        var open = 0d;
+        var close = 0d;
         var high = 0d;
         var low = 0d;
-        for(int i = ith; i < candles.size(); i++){
-            var tmpHigh = candles.get(i).getHigh();
-            high = high > tmpHigh ? high : tmpHigh;
+        ZonedDateTime endTimeZdt = null;
 
-            var tmpLow = candles.get(i).getLow();
-            low = low > tmpLow ? low : tmpLow;
+        for(int i = 0; i < candles.size() ; i ++) {
+            var ithCandle = candles.get(i);
+            if(i == 0) {
+                open = ithCandle.getOpen();
+                close = ithCandle.getClose();
+                high = ithCandle.getHigh();
+                low = ithCandle.getLow();
+                endTimeZdt = ithCandle.getStartTimeZdt().plusMinutes(5);
+                factorCtr ++;
+            }
+
+            if(i == candles.size() - 1) {
+                close = ithCandle.getClose();
+                endTimeZdt = ithCandle.getStartTimeZdt().plusMinutes(5);
+                barSeries.addBar(endTimeZdt, open, high, low, close);
+                break;
+            }
+
+            var endOfDay = !ithCandle.getStartTimeZdt().getDayOfWeek().equals(candles.get(i + 1).getStartTimeZdt().getDayOfWeek());
+            if(factorCtr == factor - 1 || endOfDay){
+                close = ithCandle.getClose();
+                endTimeZdt = ithCandle.getStartTimeZdt().plusMinutes(5);
+                barSeries.addBar(endTimeZdt, open, high, low, close);
+                factorCtr = 0;
+            }else if(factorCtr == 0){
+                open = ithCandle.getOpen();
+                high = ithCandle.getHigh();
+                low = ithCandle.getLow();
+                factorCtr ++;
+            }else{
+                if(ithCandle.getHigh() > high){
+                    high = ithCandle.getHigh();
+                }
+                if(ithCandle.getLow() < low){
+                    low = ithCandle.getLow();
+                }
+                factorCtr ++;
+            }
+
         }
 
-        var endTimeZdt = lastCandle.getStartTimeZdt().plusMinutes(5);
-        barSeries.addBar(endTimeZdt, open, high, low, close);
         return barSeries;
     }
 
