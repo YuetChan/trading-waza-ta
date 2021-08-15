@@ -14,7 +14,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static tycorp.eb.lib.DefaultDateTimeHelper.*;
+import static tycorp.eb.lib.DateTimeHelper.*;
 
 public class EbCandlesProvider {
 

@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class DefaultGsonHelper {
+public class GsonHelper {
 
     public static GsonBuilder builder = new GsonBuilder();
 
