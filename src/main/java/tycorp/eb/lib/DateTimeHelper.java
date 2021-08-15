@@ -2,7 +2,7 @@ package tycorp.eb.lib;
 
 import java.time.*;
 
-public class DefaultDateTimeHelper {
+public class DateTimeHelper {
 
     public static Long zonedDateTimeToEpoch(ZonedDateTime zdt) {
         return zdt.toInstant().toEpochMilli();

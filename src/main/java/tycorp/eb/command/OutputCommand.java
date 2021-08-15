@@ -11,7 +11,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import picocli.CommandLine;
-import tycorp.eb.lib.DefaultGsonHelper;
+import tycorp.eb.lib.GsonHelper;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -80,9 +80,9 @@ public class OutputCommand implements Runnable {
                 threadJson.addProperty("dscription", "");
                 threadJson.add("contents", new JsonArray());
 
-                threadJson.add("tickerNames", DefaultGsonHelper.createJsonElement(Arrays.asList(tickerName))
+                threadJson.add("tickerNames", GsonHelper.createJsonElement(Arrays.asList(tickerName))
                         .getAsJsonArray());
-                threadJson.add("tagNames", DefaultGsonHelper.createJsonElement(Arrays.asList(tagNames))
+                threadJson.add("tagNames", GsonHelper.createJsonElement(Arrays.asList(tagNames))
                         .getAsJsonArray());
 
                 HttpPost threadPostReq = new HttpPost(uploadUrl);

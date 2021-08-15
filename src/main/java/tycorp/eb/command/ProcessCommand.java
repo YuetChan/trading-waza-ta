@@ -9,7 +9,7 @@ import tycorp.eb.extend_indicator.EbConsensioCrossIndicator;
 import tycorp.eb.extend_indicator.EbSMAIndicator;
 import tycorp.eb.script.EbCandle;
 import tycorp.eb.script.EbCandlesToTa4jBarSeries;
-import tycorp.eb.lib.DefaultDateTimeHelper;
+import tycorp.eb.lib.DateTimeHelper;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -99,7 +99,7 @@ public class ProcessCommand implements Runnable {
                     System.out.println("At " + barSeries.getLastBar().getEndTime());
                 }
 
-                var line = tags.size() == 0 ? "" : ticker + "," + tags.stream().collect(Collectors.joining(",") ) + "," + DefaultDateTimeHelper.truncateTime(Instant.now().atZone(ZoneId.of("America/New_York")));
+                var line = tags.size() == 0 ? "" : ticker + "," + tags.stream().collect(Collectors.joining(",") ) + "," + DateTimeHelper.truncateTime(Instant.now().atZone(ZoneId.of("America/New_York")));
                 appendToFile(selectedTickersFname, line);
             }
         }
