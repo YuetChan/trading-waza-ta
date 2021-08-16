@@ -31,18 +31,18 @@ public class ProcessCommand implements Runnable {
     @CommandLine.Option(
             names = {"-s", "--selected"},
             required = true,
-            description = "The file that saves the selected tickers.")
+            description = "The filename that saves the selected tickers.")
     private String selectedTickersFname;
     @CommandLine.Option(
             names = {"-t", "--ticker"},
             required = true,
-            description = "The csv that contains tickers list.")
+            description = "The csv name that contains tickers list.")
     private String tickersCSV;
 
     @CommandLine.Option(
             names = {"-i", "--indicator"},
             required = true,
-            description = "The indicator for processing the data.")
+            description = "The indicator of choice for processing the data.")
     private String indicator;
 
 
