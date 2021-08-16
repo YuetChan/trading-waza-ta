@@ -28,12 +28,12 @@ public class LoadCommand implements Runnable {
     @CommandLine.Option(
             names = {"-l", "--last"},
             required = true,
-            description = "The txt for saving the last loaded ticker.")
+            description = "The filename for saving the last loaded ticker.")
     private String lastLoadedTickerFname;
     @CommandLine.Option(
             names = {"-t", "--ticker"},
             required = true,
-            description = "The csv that contains tickers list.")
+            description = "The csv name that contains tickers list.")
     private String tickersCSV;
 
 
@@ -49,7 +49,7 @@ public class LoadCommand implements Runnable {
         try {
             reader = new BufferedReader(new FileReader(lastLoadedTickerFname));
             lastLoadedTicker = reader.readLine();
-            loadedTickerCheck = lastLoadedTicker == "" ? false : true;
+            loadedTickerCheck = lastLoadedTicker == null ? false : true;
         }catch(IOException e){
             throw e;
         }
@@ -60,8 +60,10 @@ public class LoadCommand implements Runnable {
         System.out.println("Last loaded ticker : " + lastLoadedTicker);
 
         for(var ticker : loadedTickers) {
-            if(loadedTickerCheck && !lastLoadedTicker.equals(ticker) ) {
-                continue;
+            if(loadedTickerCheck) {
+                if(!lastLoadedTicker.equals(ticker)){
+                    continue;
+                }
             }else{
                 loadedTickerCheck = false;
             }

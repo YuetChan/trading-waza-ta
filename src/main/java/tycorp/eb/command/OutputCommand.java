@@ -27,12 +27,12 @@ public class OutputCommand implements Runnable {
     @CommandLine.Option(
             names = {"-s", "--selected"},
             required = true,
-            description = "The file that contains the selected tickers with their tags and processed ats.")
+            description = "The filename that contains the selected tickers with their tags and processed ats.")
     private String selectedTickersFname;
     @CommandLine.Option(
             names = {"-c", "--config"},
             required = true,
-            description = "The file that contains output configs.")
+            description = "The filename that contains output configs.")
     private String configFname;
 
     @SneakyThrows
