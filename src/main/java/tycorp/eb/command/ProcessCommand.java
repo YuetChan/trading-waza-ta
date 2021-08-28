@@ -31,20 +31,19 @@ public class ProcessCommand implements Runnable {
     @CommandLine.Option(
             names = {"-s", "--selected"},
             required = true,
-            description = "The filename that saves the selected tickers.")
+            description = "Filename that saves the selected tickers.")
     private String selectedTickersFname;
     @CommandLine.Option(
             names = {"-t", "--ticker"},
             required = true,
-            description = "The csv name that contains tickers list.")
+            description = "CSV filename that contains the tickers list.")
     private String tickersCSV;
 
     @CommandLine.Option(
             names = {"-i", "--indicator"},
             required = true,
-            description = "The indicator of choice for processing the data.")
+            description = "Indicator of choice for processing the data.")
     private String indicator;
-
 
     @SneakyThrows
     @Override
@@ -52,7 +51,7 @@ public class ProcessCommand implements Runnable {
         var influxDB = InfluxConfig.initInfluxConfig();
 
         var tickerTagsMp = new HashMap<String, List<String>>();
-        var loadedTickers = LoadCommand.loadTickersFromCSV(tickersCSV);
+        var loadedTickers = LoadCommand.loadTickersListFromCSV(tickersCSV);
         if(indicator.equals(EbSMAIndicator.class.getSimpleName())) {
             for(var ticker : loadedTickers) {
                 var dailyCandleResult = influxDB.query(
@@ -106,18 +105,18 @@ public class ProcessCommand implements Runnable {
     }
 
     public static void appendToFile(String filename, String line) throws IOException {
-        BufferedWriter bWriter = null;
+        BufferedWriter buffWriter = null;
         try {
-            bWriter = new BufferedWriter(new FileWriter(filename));
-            bWriter.write(line);
-            bWriter.newLine();
-            bWriter.flush();
-        } catch (IOException e) {
+            buffWriter = new BufferedWriter(new FileWriter(filename));
+            buffWriter.write(line);
+            buffWriter.newLine();
+            buffWriter.flush();
+        }catch (IOException e) {
             throw e;
-        } finally {
-            if (bWriter != null) {
+        }finally {
+            if (buffWriter != null) {
                 try {
-                    bWriter.close();
+                    buffWriter.close();
                 } catch (IOException e) {
                     throw e;
                 }
