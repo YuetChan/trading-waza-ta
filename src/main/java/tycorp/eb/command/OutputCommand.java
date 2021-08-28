@@ -27,69 +27,70 @@ public class OutputCommand implements Runnable {
     @CommandLine.Option(
             names = {"-s", "--selected"},
             required = true,
-            description = "The filename that contains the selected tickers with their tags and processed ats.")
+            description = "Filename that contains the selected tickers with their tags and processed ats.")
     private String selectedTickersFname;
     @CommandLine.Option(
             names = {"-c", "--config"},
             required = true,
-            description = "The filename that contains output configs.")
+            description = "Filename that contains output configs.")
     private String configFname;
 
     @SneakyThrows
     @Override
     public void run() {
-        BufferedReader reader;
+        BufferedReader buffReader;
         try {
-            reader = new BufferedReader(new FileReader(configFname));
+            buffReader = new BufferedReader(new FileReader(configFname));
 
-            var authUrl = reader.readLine();
-            var uploadUrl = reader.readLine();
-            var useremail = reader.readLine();
-            var password = reader.readLine();
+            String authUrl = buffReader.readLine();
+            String uploadUrl = buffReader.readLine();
+            String useremail = buffReader.readLine();
+            String password = buffReader.readLine();
 
-            HttpPost authPostReq = new HttpPost(authUrl);
-            authPostReq.addHeader("content-type", "application/json");
-
-            var authJson = new JsonObject();
+            JsonObject authJson = new JsonObject();
             authJson.addProperty("useremail", useremail);
             authJson.addProperty("password", password);
 
+            HttpPost authPostReq = new HttpPost(authUrl);
+            authPostReq.addHeader("content-type", "application/json");
             authPostReq.setEntity(new StringEntity(authJson.toString()));
+
             CloseableHttpClient httpClient = HttpClients.createDefault();
             CloseableHttpResponse res = httpClient.execute(authPostReq);
 
             String resStr = EntityUtils.toString(res.getEntity());
-            var jwt = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
+            String jwt = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
 
-            reader = new BufferedReader(new FileReader(selectedTickersFname));
-            for(String line = reader.readLine(); line != null; line = reader.readLine()) {
-                var words = line.split(",");
+            buffReader = new BufferedReader(new FileReader(selectedTickersFname));
+            for(String line = buffReader.readLine(); line != null; line = buffReader.readLine()) {
+                String[] words = line.split(",");
 
-                var tickerName = words[0];
-                var tagNames = new String[words.length - 2];
-                System.arraycopy(words, 1, tagNames, 0, tagNames.length);
+                String processedAt = words[words.length - 1];
 
-                var processedAt = words[words.length - 1];
+                String ticker = words[0];
+                String[] tags = new String[words.length - 2];
+                System.arraycopy(words, 1, tags, 0, tags.length);
 
-                var threadJson = new JsonObject();
-                threadJson.addProperty("processedAt", processedAt);
-                threadJson.addProperty("slaveId", 1l);
-                threadJson.addProperty("userId", 1l);
+                JsonObject postJson = new JsonObject();
+                postJson.addProperty("processedAt", processedAt);
+                postJson.addProperty("slaveId", 1l);
+                postJson.addProperty("userId", 1l);
 
-                threadJson.addProperty("title", "");
-                threadJson.addProperty("dscription", "");
-                threadJson.add("contents", new JsonArray());
+                postJson.addProperty("title", "");
+                postJson.addProperty("dscription", "");
+                postJson.add("contents", new JsonArray());
 
-                threadJson.add("tickerNames", GsonHelper.createJsonElement(Arrays.asList(tickerName))
-                        .getAsJsonArray());
-                threadJson.add("tagNames", GsonHelper.createJsonElement(Arrays.asList(tagNames))
-                        .getAsJsonArray());
+                postJson.add(
+                        "tickers", GsonHelper.createJsonElement(Arrays.asList(ticker)).getAsJsonArray());
+                postJson.add(
+                        "tags",
+                        GsonHelper.createJsonElement(Arrays.asList(tags)).getAsJsonArray());
 
-                HttpPost threadPostReq = new HttpPost(uploadUrl);
-                threadPostReq.setHeader("Authorization", "Bearer " + jwt);
-                threadPostReq.setEntity(new StringEntity(threadJson.toString()));
+                HttpPost postPostReq = new HttpPost(uploadUrl);
+                postPostReq.setHeader("Authorization", "Bearer " + jwt);
+                postPostReq.setEntity(new StringEntity(postJson.toString()));
 
-                res = httpClient.execute(threadPostReq);
+                res = httpClient.execute(postPostReq);
                 resStr = EntityUtils.toString(res.getEntity());
                 System.out.println(resStr);
             }

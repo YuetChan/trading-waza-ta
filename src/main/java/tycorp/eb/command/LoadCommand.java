@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.influxdb.InfluxDB;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
 import org.slf4j.Logger;
@@ -28,47 +29,44 @@ public class LoadCommand implements Runnable {
     @CommandLine.Option(
             names = {"-l", "--last"},
             required = true,
-            description = "The filename for saving the last loaded ticker.")
+            description = "Filename for saving the last loaded ticker.")
     private String lastLoadedTickerFname;
     @CommandLine.Option(
             names = {"-t", "--ticker"},
             required = true,
-            description = "The csv name that contains tickers list.")
+            description = "CSV filename that contains the tickers list.")
     private String tickersCSV;
-
 
     @SneakyThrows
     @Override
     public void run() {
-        var influxDB = InfluxConfig.initInfluxConfig();
+        InfluxDB influxDB = InfluxConfig.initInfluxConfig();
 
-        var lastLoadedTicker = "";
-        var loadedTickerCheck = true;
+        String lastLoadedTicker = "";
+        boolean skip = true;
 
-        BufferedReader reader;
+        BufferedReader buffReader;
         try {
-            reader = new BufferedReader(new FileReader(lastLoadedTickerFname));
-            lastLoadedTicker = reader.readLine();
-            loadedTickerCheck = lastLoadedTicker == null ? false : true;
-        }catch(IOException e){
+            buffReader = new BufferedReader(new FileReader(lastLoadedTickerFname));
+            lastLoadedTicker = buffReader.readLine();
+            skip = lastLoadedTicker == null ? false : true;
+        }catch(IOException e) {
             throw e;
         }
 
-        var loadedTickers = loadTickersFromCSV(tickersCSV);
+        List<String> tickersList = loadTickersListFromCSV(tickersCSV);
 
-        System.out.println("Total of " + loadedTickers.size() + " tickers");
+        System.out.println("Total of " + tickersList.size() + " tickers");
         System.out.println("Last loaded ticker : " + lastLoadedTicker);
 
-        for(var ticker : loadedTickers) {
-            if(loadedTickerCheck) {
+        for(String ticker : tickersList) {
+            if(skip) {
                 if(!lastLoadedTicker.equals(ticker)){
                     continue;
                 }
-            }else{
-                loadedTickerCheck = false;
             }
 
-            var measurement = InfluxConfig.generateMeasurement(ticker);
+            String measurement = InfluxConfig.generateMeasurement(ticker);
 
             var minsCandleResult = influxDB.query(
                     new Query("SELECT * FROM " + measurement + " WHERE frq=" + "'5_MINS' ORDER BY DESC"));
@@ -76,10 +74,8 @@ public class LoadCommand implements Runnable {
             var minsCandles = minsSeries == null
                     ? EbCandlesProvider.getEbCandlesSinceDefaultStartDate(ticker, FrequencyType.minute)
                     : EbCandlesProvider.getEbCandlesSinceLastEndDate(
-                    ticker,
-                    FrequencyType.minute,
-                    ZonedDateTime.parse(
-                            minsSeries.get(0).getValues().get(0).get(6).toString()));
+                    ticker, FrequencyType.minute,
+                    ZonedDateTime.parse(minsSeries.get(0).getValues().get(0).get(6).toString()));
             for(var candle : minsCandles){
                 influxDB.write(Point.measurement(measurement)
                         .time(candle.getStartTimeZdt().toInstant().toEpochMilli(), TimeUnit.MILLISECONDS)
@@ -98,10 +94,8 @@ public class LoadCommand implements Runnable {
             var dailyCandles = dailySeries == null
                     ? EbCandlesProvider.getEbCandlesSinceDefaultStartDate(ticker, FrequencyType.daily)
                     : EbCandlesProvider.getEbCandlesSinceLastEndDate(
-                    ticker,
-                    FrequencyType.daily,
-                    ZonedDateTime.parse(
-                            dailySeries.get(0).getValues().get(0).get(6).toString()));
+                    ticker, FrequencyType.daily,
+                    ZonedDateTime.parse(dailySeries.get(0).getValues().get(0).get(6).toString()));
             for(var candle : dailyCandles){
                 influxDB.write(Point.measurement(measurement)
                         .time(candle.getStartTimeZdt().toInstant().toEpochMilli(), TimeUnit.MILLISECONDS)
@@ -128,19 +122,19 @@ public class LoadCommand implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadCommand.class);
 
-    public static List<String> loadTickersFromCSV(String filename) throws IOException {
-        var tickers = new ArrayList<String>();
+    public static List<String> loadTickersListFromCSV(String filename) throws IOException {
+        List<String> tickers = new ArrayList();
         CSVParser parser = new CSVParser(new FileReader(new File(filename)), CSVFormat.DEFAULT);
 
-        var skippedFirst = false;
+        boolean skipFirst = false;
         List<CSVRecord> records = parser.getRecords();
-        for(var record : records){
-            if(!skippedFirst){
-                skippedFirst = true;
+        for(CSVRecord record : records){
+            if(!skipFirst){
+                skipFirst = true;
                 continue;
             }
 
-            var ticker = record.get(0);
+            String ticker = record.get(0);
             if(ticker.matches ("[a-zA-Z]+\\.?")){
                 tickers.add(ticker);
             }

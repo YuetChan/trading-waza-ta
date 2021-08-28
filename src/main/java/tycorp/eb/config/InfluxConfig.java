@@ -3,7 +3,6 @@ package tycorp.eb.config;
 import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
-import org.influxdb.dto.Query;
 
 public class InfluxConfig {
 
