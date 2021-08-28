@@ -1,7 +1,9 @@
 package tycorp.eb.command;
 
 import lombok.SneakyThrows;
+import org.influxdb.InfluxDB;
 import org.influxdb.dto.Query;
+import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import picocli.CommandLine;
 import tycorp.eb.config.InfluxConfig;
@@ -48,10 +50,9 @@ public class ProcessCommand implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-        var influxDB = InfluxConfig.initInfluxConfig();
+        InfluxDB influxDB = InfluxConfig.initInfluxConfig();
 
-        var tickerTagsMp = new HashMap<String, List<String>>();
-        var loadedTickers = LoadCommand.loadTickersListFromCSV(tickersCSV);
+        List<String> loadedTickers = LoadCommand.loadTickersListFromCSV(tickersCSV);
         if(indicator.equals(EbSMAIndicator.class.getSimpleName())) {
             for(var ticker : loadedTickers) {
                 var dailyCandleResult = influxDB.query(
@@ -59,10 +60,10 @@ public class ProcessCommand implements Runnable {
                                 + " WHERE frq=" + "'DAILY' ORDER BY ASC"));
 
                 System.out.println(dailyCandleResult);
-                var series = dailyCandleResult.getResults().get(0).getSeries();
-                var vals = series.get(0).getValues();
+                var dailySeries = dailyCandleResult.getResults().get(0).getSeries();
+                List<List<Object>> vals = dailySeries.get(0).getValues();
 
-                var ebCandles = new ArrayList<EbCandle>();
+                List<EbCandle> ebCandles = new ArrayList();
                 for(var val : vals){
                     ebCandles.add(
                             new EbCandle(
@@ -71,21 +72,21 @@ public class ProcessCommand implements Runnable {
                                     ZonedDateTime.parse(val.get(6).toString())));
                 }
 
-                var barSeries = EbCandlesToTa4jBarSeries.convert(ebCandles, EbCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
-                var closePriceI = new ClosePriceIndicator(barSeries);
+                BarSeries barSeries = EbCandlesToTa4jBarSeries.convert(ebCandles, EbCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
+                ClosePriceIndicator closePriceI = new ClosePriceIndicator(barSeries);
 
-                var consensioCrossI200 = new EbConsensioCrossIndicator(
+                EbConsensioCrossIndicator consensioCrossI200 = new EbConsensioCrossIndicator(
                         new EbSMAIndicator(closePriceI, 20),
                         new EbSMAIndicator(closePriceI, 50),
                         new EbSMAIndicator(closePriceI, 200));
-                var consensioCrossI100 = new EbConsensioCrossIndicator(
+                EbConsensioCrossIndicator consensioCrossI100 = new EbConsensioCrossIndicator(
                         new EbSMAIndicator(closePriceI, 20),
                         new EbSMAIndicator(closePriceI, 50),
                         new EbSMAIndicator(closePriceI, 100));
 
                 System.out.println("Processed " + ticker);
 
-                var tags = new ArrayList<String>();
+                List<String> tags = new ArrayList();
                 if(consensioCrossI100.getValue(barSeries.getEndIndex())) {
                     tags.add("consensio 100");
                     System.out.println(ticker + " has consensio 100");
@@ -98,7 +99,7 @@ public class ProcessCommand implements Runnable {
                     System.out.println("At " + barSeries.getLastBar().getEndTime());
                 }
 
-                var line = tags.size() == 0 ? "" : ticker + "," + tags.stream().collect(Collectors.joining(",") ) + "," + DateTimeHelper.truncateTime(Instant.now().atZone(ZoneId.of("America/New_York")));
+                String line = tags.size() == 0 ? "" : ticker + "," + tags.stream().collect(Collectors.joining(",") ) + "," + DateTimeHelper.truncateTime(Instant.now().atZone(ZoneId.of("America/New_York")));
                 appendToFile(selectedTickersFname, line);
             }
         }
