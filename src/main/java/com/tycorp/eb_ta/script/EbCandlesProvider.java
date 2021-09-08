@@ -1,4 +1,4 @@
-package tycorp.eb.script;
+package com.tycorp.eb_ta.script;
 
 import com.studerw.tda.client.HttpTdaClient;
 import com.studerw.tda.client.TdaClient;
@@ -14,8 +14,11 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static tycorp.eb.lib.DateTimeHelper.*;
+import static com.tycorp.eb_ta.lib.DateTimeHelper.*;
 
+/**
+ * Helper functions for getting stock data from TD Ameritrade api
+ */
 public class EbCandlesProvider {
 
     private static TdaClient CLIENT = new HttpTdaClient();
@@ -23,7 +26,7 @@ public class EbCandlesProvider {
     public static List<EbCandle> getEbCandlesSinceDefaultStartDate(String ticker, FrequencyType frequencyType){
         PriceHistReq req = null;
 
-        var retryCtr = 5;
+        int retryCtr = 5;
         while(true) {
             try {
                 if(frequencyType.equals(FrequencyType.minute)){
@@ -66,9 +69,9 @@ public class EbCandlesProvider {
 
     public static List<EbCandle> getEbCandlesSinceLastEndDate(String ticker, FrequencyType frequencyType, ZonedDateTime lastEndDateZdt){
         PriceHistReq req = null;
-        var lastEndDateEpoch = zonedDateTimeToEpoch(lastEndDateZdt);
+        long lastEndDateEpoch = zonedDateTimeToEpoch(lastEndDateZdt);
 
-        var retryCtr = 5;
+        int retryCtr = 5;
         while(true) {
             try {
                 if(frequencyType == FrequencyType.minute){
@@ -106,8 +109,8 @@ public class EbCandlesProvider {
         }
     }
 
-    public static List<EbCandle> candlesToEbCandles(List<Candle> candles, FrequencyType frequencyType) {
-        var ebCandles = new ArrayList<EbCandle>();
+    private static List<EbCandle> candlesToEbCandles(List<Candle> candles, FrequencyType frequencyType) {
+        List<EbCandle> ebCandles = new ArrayList();
         for(var candle : candles){
             ebCandles.add(
                     new EbCandle(

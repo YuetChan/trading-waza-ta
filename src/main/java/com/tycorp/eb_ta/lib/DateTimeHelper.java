@@ -1,4 +1,4 @@
-package tycorp.eb.lib;
+package com.tycorp.eb_ta.lib;
 
 import java.time.*;
 

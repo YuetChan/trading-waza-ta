@@ -1,6 +1,7 @@
-package tycorp.eb.command;
+package com.tycorp.eb_ta.command;
 
 import com.studerw.tda.model.history.FrequencyType;
+import com.tycorp.eb_ta.config.InfluxConfig;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -8,11 +9,10 @@ import org.apache.commons.csv.CSVRecord;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.influxdb.dto.QueryResult;
 import picocli.CommandLine;
-import tycorp.eb.config.InfluxConfig;
-import tycorp.eb.script.EbCandlesProvider;
+import com.tycorp.eb_ta.script.EbCandle;
+import com.tycorp.eb_ta.script.EbCandlesProvider;
 
 import java.io.*;
 import java.time.ZonedDateTime;
@@ -20,9 +20,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This script will load the stock data from TD Ameritrade api into database
+ * It will load the daily and mins candles data.
+ *
+ * Steps:
+ *  It will extract the tickers in the given CSV file and query each of their stock data in influex db.
+ *  If the query is empty, it will load the stock data since default start date.
+ *  If the query is not empty, it will load the latest stock data since last end date.
+ *  After each load, it will save stock data into influx db
+ */
 @CommandLine.Command(
         name = "Load",
-        description = "Load stock data from TDA provider"
+        description = "Load stock data from TD Ameritrade api into database"
 )
 public class LoadCommand implements Runnable {
 
@@ -49,34 +59,44 @@ public class LoadCommand implements Runnable {
         try {
             buffReader = new BufferedReader(new FileReader(lastLoadedTickerFname));
             lastLoadedTicker = buffReader.readLine();
-            skip = lastLoadedTicker == null ? false : true;
+            // Skip to last loaded ticker
+            skip = lastLoadedTicker == null ||   lastLoadedTicker == "" ? false : true;
         }catch(IOException e) {
             throw e;
         }
 
-        List<String> tickersList = loadTickersListFromCSV(tickersCSV);
+        List<String> tickers = loadTickersFromCSV(tickersCSV);
 
-        System.out.println("Total of " + tickersList.size() + " tickers");
-        System.out.println("Last loaded ticker : " + lastLoadedTicker);
+        System.out.println("Total of " + tickers.size() + " tickers");
+        System.out.println("Last loaded ticker : " + lastLoadedTicker == null ? "" : lastLoadedTicker);
 
-        for(String ticker : tickersList) {
+        for(String ticker : tickers) {
+            // Skip until find the last loaded ticker
             if(skip) {
                 if(!lastLoadedTicker.equals(ticker)){
                     continue;
+                }else {
+                    skip = false;
                 }
             }
 
+            // Generate standard measurement
             String measurement = InfluxConfig.generateMeasurement(ticker);
 
-            var minsCandleResult = influxDB.query(
+            // Query the candles
+            QueryResult minsCandleResult = influxDB.query(
                     new Query("SELECT * FROM " + measurement + " WHERE frq=" + "'5_MINS' ORDER BY DESC"));
-            var minsSeries = minsCandleResult.getResults().get(0).getSeries();
-            var minsCandles = minsSeries == null
+            List<QueryResult.Series> minsCandlesSeries = minsCandleResult.getResults().get(0).getSeries();
+
+            // If there are no candles, get the candle since default start date
+            // Otherwise, get new candles since last end date
+            List<EbCandle> minsCandles = minsCandlesSeries == null
                     ? EbCandlesProvider.getEbCandlesSinceDefaultStartDate(ticker, FrequencyType.minute)
                     : EbCandlesProvider.getEbCandlesSinceLastEndDate(
-                    ticker, FrequencyType.minute,
-                    ZonedDateTime.parse(minsSeries.get(0).getValues().get(0).get(6).toString()));
-            for(var candle : minsCandles){
+                            ticker, FrequencyType.minute, ZonedDateTime.parse(minsCandlesSeries.get(0).getValues().get(0).get(6).toString()));
+
+            // Write the candles to influx db
+            for(EbCandle candle : minsCandles){
                 influxDB.write(Point.measurement(measurement)
                         .time(candle.getStartTimeZdt().toInstant().toEpochMilli(), TimeUnit.MILLISECONDS)
                         .addField("zdt", candle.getStartTimeZdt().toString())
@@ -88,15 +108,20 @@ public class LoadCommand implements Runnable {
                         .build());
             }
 
-            var dailyResult = influxDB.query(
+            // Query the candles
+            QueryResult dailyCandlesResult = influxDB.query(
                     new Query("SELECT * FROM " + measurement  + " WHERE frq=" + "'DAILY' ORDER BY DESC"));
-            var dailySeries = dailyResult.getResults().get(0).getSeries();
-            var dailyCandles = dailySeries == null
+            List<QueryResult.Series> dailyCandlesSeries = dailyCandlesResult.getResults().get(0).getSeries();
+
+            // If there are no candles, get the candle since default start date
+            // Otherwise, get new candles since last end date
+            List<EbCandle> dailyCandles = dailyCandlesSeries == null
                     ? EbCandlesProvider.getEbCandlesSinceDefaultStartDate(ticker, FrequencyType.daily)
                     : EbCandlesProvider.getEbCandlesSinceLastEndDate(
-                    ticker, FrequencyType.daily,
-                    ZonedDateTime.parse(dailySeries.get(0).getValues().get(0).get(6).toString()));
-            for(var candle : dailyCandles){
+                            ticker, FrequencyType.daily, ZonedDateTime.parse(dailyCandlesSeries.get(0).getValues().get(0).get(6).toString()));
+
+            // Write the candles to influx db
+            for(EbCandle candle : dailyCandles){
                 influxDB.write(Point.measurement(measurement)
                         .time(candle.getStartTimeZdt().toInstant().toEpochMilli(), TimeUnit.MILLISECONDS)
                         .addField("zdt", candle.getStartTimeZdt().toString())
@@ -108,9 +133,11 @@ public class LoadCommand implements Runnable {
                         .build());
             }
 
+            // Track the last loaded ticker
             writeToFile(lastLoadedTickerFname, ticker);
 
             System.out.println(ticker + " loaded");
+            // Prevent rate limit issue
             Thread.sleep(1500);
         }
 
@@ -120,9 +147,7 @@ public class LoadCommand implements Runnable {
         System.exit(0);
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoadCommand.class);
-
-    public static List<String> loadTickersListFromCSV(String filename) throws IOException {
+    public static List<String> loadTickersFromCSV(String filename) throws IOException {
         List<String> tickers = new ArrayList();
         CSVParser parser = new CSVParser(new FileReader(new File(filename)), CSVFormat.DEFAULT);
 

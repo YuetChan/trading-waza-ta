@@ -1,4 +1,4 @@
-package tycorp.eb.script;
+package com.tycorp.eb_ta.script;
 
 import lombok.*;
 

@@ -1,4 +1,4 @@
-package tycorp.eb.script;
+package com.tycorp.eb_ta.script;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
@@ -6,10 +6,14 @@ import org.ta4j.core.BaseBarSeries;
 import java.time.*;
 import java.util.List;
 
+/**
+ * Helper functions for converting EbCandle into Ta4jBarSeries
+ * Currently support convertion to different frequencies for daily and mins EbCandle
+ */
 public class EbCandlesToTa4jBarSeries {
 
     public enum Ta4jTimeframe {
-        MINS, HOURLY, DAILY
+        MINS, DAILY
     }
 
     public static BarSeries convert(List<EbCandle> candles, Ta4jTimeframe timeframe, int frequency) {
@@ -24,19 +28,19 @@ public class EbCandlesToTa4jBarSeries {
     }
 
     private static BarSeries candlesToBarSeriesMinsVariance(List<EbCandle> candles, int frequency) {
-        var barSeries = new BaseBarSeries();
+        BarSeries barSeries = new BaseBarSeries();
 
-        var factor = frequency / 5;
-        var factorCtr = 0;
+        double factor = frequency / 5;
+        int factorCtr = 0;
 
-        var open = 0d;
-        var close = 0d;
-        var high = 0d;
-        var low = 0d;
+        double open = 0d;
+        double close = 0d;
+        double high = 0d;
+        double low = 0d;
         ZonedDateTime endTimeZdt = null;
 
         for(int i = 0; i < candles.size() ; i ++) {
-            var ithCandle = candles.get(i);
+            EbCandle ithCandle = candles.get(i);
             if(i == 0) {
                 open = ithCandle.getOpen();
                 close = ithCandle.getClose();
@@ -53,8 +57,8 @@ public class EbCandlesToTa4jBarSeries {
                 break;
             }
 
-            var endOfDay = !ithCandle.getStartTimeZdt().getDayOfWeek().equals(candles.get(i + 1).getStartTimeZdt().getDayOfWeek());
-            if(factorCtr == factor - 1 || endOfDay){
+            boolean isEndOfDay = !ithCandle.getStartTimeZdt().getDayOfWeek().equals(candles.get(i + 1).getStartTimeZdt().getDayOfWeek());
+            if(factorCtr == factor - 1 || isEndOfDay){
                 close = ithCandle.getClose();
                 endTimeZdt = ithCandle.getStartTimeZdt().plusMinutes(5);
                 barSeries.addBar(endTimeZdt, open, high, low, close);
@@ -80,16 +84,16 @@ public class EbCandlesToTa4jBarSeries {
     }
 
     private static BarSeries candlesToBarSeriesDaily(List<EbCandle> candles) {
-        var barSeries = new BaseBarSeries();
+        BarSeries barSeries = new BaseBarSeries();
         for(int i = 0; i < candles.size(); i ++){
-            var ithCandle = candles.get(i);
+            EbCandle ithCandle = candles.get(i);
 
-            var open = ithCandle.getOpen();
-            var close = ithCandle.getClose();
-            var high = ithCandle.getHigh();
-            var low = ithCandle.getLow();
+            double open = ithCandle.getOpen();
+            double close = ithCandle.getClose();
+            double high = ithCandle.getHigh();
+            double low = ithCandle.getLow();
 
-            var endTimeZdt = ithCandle.getStartTimeZdt()
+            ZonedDateTime endTimeZdt = ithCandle.getStartTimeZdt()
                     .toLocalDate()
                     .atTime(LocalTime.parse("20:00"))
                     .atZone(ZoneId.of("America/New_York"));
