@@ -1,4 +1,4 @@
-package tycorp.eb.command;
+package com.tycorp.eb_ta.command;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -11,16 +11,24 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import picocli.CommandLine;
-import tycorp.eb.lib.GsonHelper;
+import com.tycorp.eb_ta.lib.GsonHelper;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 
+/**
+ * This script will output the stock data from specified file into specified api
+ *
+ * Steps:
+ *  It will execute auth request using the auth config extracted from specified file
+ *  It will then extract the jwt from the auth response
+ *  Finally, it will execute post requests and output the stock data to the specified api
+ */
 @CommandLine.Command(
         name = "Output",
-        description = "Output stock data"
+        description = "Output stock data based on config"
 )
 public class OutputCommand implements Runnable {
 
@@ -42,35 +50,46 @@ public class OutputCommand implements Runnable {
         try {
             buffReader = new BufferedReader(new FileReader(configFname));
 
+            // Load the auth config from specified file
             String authUrl = buffReader.readLine();
             String uploadUrl = buffReader.readLine();
             String useremail = buffReader.readLine();
             String password = buffReader.readLine();
 
+            // Create auth request payload
             JsonObject authJson = new JsonObject();
             authJson.addProperty("useremail", useremail);
             authJson.addProperty("password", password);
 
+            // Create auth request
             HttpPost authPostReq = new HttpPost(authUrl);
             authPostReq.addHeader("content-type", "application/json");
             authPostReq.setEntity(new StringEntity(authJson.toString()));
 
+            // Execute the auth request
             CloseableHttpClient httpClient = HttpClients.createDefault();
             CloseableHttpResponse res = httpClient.execute(authPostReq);
 
+            // Convert the response to string and parse it as json, then extract the jwt
             String resStr = EntityUtils.toString(res.getEntity());
             String jwt = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
 
             buffReader = new BufferedReader(new FileReader(selectedTickersFname));
+            // Extract stock data from each line
             for(String line = buffReader.readLine(); line != null; line = buffReader.readLine()) {
+                // Stock data separated by ,
                 String[] words = line.split(",");
 
+                // The last word is processedAt
                 String processedAt = words[words.length - 1];
 
+                // The first word is ticker
                 String ticker = words[0];
+                // The word in between first and last words are tags
                 String[] tags = new String[words.length - 2];
                 System.arraycopy(words, 1, tags, 0, tags.length);
 
+                // Create post request payload
                 JsonObject postJson = new JsonObject();
                 postJson.addProperty("processedAt", processedAt);
                 postJson.addProperty("slaveId", 1l);
@@ -86,12 +105,15 @@ public class OutputCommand implements Runnable {
                         "tags",
                         GsonHelper.createJsonElement(Arrays.asList(tags)).getAsJsonArray());
 
+                // Create post request
                 HttpPost postPostReq = new HttpPost(uploadUrl);
                 postPostReq.setHeader("Authorization", "Bearer " + jwt);
                 postPostReq.setEntity(new StringEntity(postJson.toString()));
 
+                // Execute post request
                 res = httpClient.execute(postPostReq);
                 resStr = EntityUtils.toString(res.getEntity());
+
                 System.out.println(resStr);
             }
         } catch(IOException e) {

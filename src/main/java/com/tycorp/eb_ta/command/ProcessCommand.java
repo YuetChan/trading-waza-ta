@@ -1,17 +1,18 @@
-package tycorp.eb.command;
+package com.tycorp.eb_ta.command;
 
+import com.tycorp.eb_ta.config.InfluxConfig;
+import com.tycorp.eb_ta.script.EbCandle;
 import lombok.SneakyThrows;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Query;
+import org.influxdb.dto.QueryResult;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import picocli.CommandLine;
-import tycorp.eb.config.InfluxConfig;
-import tycorp.eb.extend_indicator.EbConsensioCrossIndicator;
-import tycorp.eb.extend_indicator.EbSMAIndicator;
-import tycorp.eb.script.EbCandle;
-import tycorp.eb.script.EbCandlesToTa4jBarSeries;
-import tycorp.eb.lib.DateTimeHelper;
+import com.tycorp.eb_ta.extend_indicator.ConsensioCrossIndicator;
+import com.tycorp.eb_ta.extend_indicator.EbSMAIndicator;
+import com.tycorp.eb_ta.script.EbCandlesToTa4jBarSeries;
+import com.tycorp.eb_ta.lib.DateTimeHelper;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -20,13 +21,12 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @CommandLine.Command(
         name = "Process",
-        description = "Process stock data"
+        description = "Process stock data based on specified indicator"
 )
 public class ProcessCommand implements Runnable {
 
@@ -52,15 +52,15 @@ public class ProcessCommand implements Runnable {
     public void run() {
         InfluxDB influxDB = InfluxConfig.initInfluxConfig();
 
-        List<String> loadedTickers = LoadCommand.loadTickersListFromCSV(tickersCSV);
+        List<String> loadedTickers = LoadCommand.loadTickersFromCSV(tickersCSV);
         if(indicator.equals(EbSMAIndicator.class.getSimpleName())) {
-            for(var ticker : loadedTickers) {
-                var dailyCandleResult = influxDB.query(
+            for(String ticker : loadedTickers) {
+                QueryResult dailyCandleResult = influxDB.query(
                         new Query("SELECT * FROM " + InfluxConfig.generateMeasurement(ticker)
                                 + " WHERE frq=" + "'DAILY' ORDER BY ASC"));
 
                 System.out.println(dailyCandleResult);
-                var dailySeries = dailyCandleResult.getResults().get(0).getSeries();
+                List<QueryResult.Series> dailySeries = dailyCandleResult.getResults().get(0).getSeries();
                 List<List<Object>> vals = dailySeries.get(0).getValues();
 
                 List<EbCandle> ebCandles = new ArrayList();
@@ -75,11 +75,11 @@ public class ProcessCommand implements Runnable {
                 BarSeries barSeries = EbCandlesToTa4jBarSeries.convert(ebCandles, EbCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
                 ClosePriceIndicator closePriceI = new ClosePriceIndicator(barSeries);
 
-                EbConsensioCrossIndicator consensioCrossI200 = new EbConsensioCrossIndicator(
+                ConsensioCrossIndicator consensioCrossI200 = new ConsensioCrossIndicator(
                         new EbSMAIndicator(closePriceI, 20),
                         new EbSMAIndicator(closePriceI, 50),
                         new EbSMAIndicator(closePriceI, 200));
-                EbConsensioCrossIndicator consensioCrossI100 = new EbConsensioCrossIndicator(
+                ConsensioCrossIndicator consensioCrossI100 = new ConsensioCrossIndicator(
                         new EbSMAIndicator(closePriceI, 20),
                         new EbSMAIndicator(closePriceI, 50),
                         new EbSMAIndicator(closePriceI, 100));

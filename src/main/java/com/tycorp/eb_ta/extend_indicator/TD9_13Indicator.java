@@ -1,9 +1,13 @@
-package tycorp.eb.extend_indicator;
+package com.tycorp.eb_ta.extend_indicator;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
+/**
+ * Implementation for Tom Demark indicator
+ * Current implementation only supports Tom Demark set up
+ */
 public class TD9_13Indicator extends CachedIndicator<Integer> {
 
     private enum Setup { BULLISH, BEARISH }
@@ -20,12 +24,12 @@ public class TD9_13Indicator extends CachedIndicator<Integer> {
             return 0;
         }
 
-        var initSetup =
+        TD9_13Indicator.Setup initSetup =
                 closePriceI.getValue(4).isGreaterThan(closePriceI.getValue(0))
                 ? Setup.BULLISH : Setup.BEARISH;
-        var currSetup = initSetup;
+        TD9_13Indicator.Setup currSetup = initSetup;
 
-        var i = 5;
+        int i = 5;
         while(currSetup.equals(initSetup) && i <= index){
             currSetup = closePriceI.getValue(i).isGreaterThan(closePriceI.getValue(i - 4))
                     ? Setup.BULLISH : Setup.BEARISH;
@@ -36,9 +40,9 @@ public class TD9_13Indicator extends CachedIndicator<Integer> {
             return 0;
         }
 
-        var currCount = currSetup.equals(Setup.BULLISH) ? 1 : -1;
+        int currCount = currSetup.equals(Setup.BULLISH) ? 1 : -1;
         while(i <= index){
-            var newSetup = closePriceI.getValue(i).isGreaterThan(closePriceI.getValue(i - 4))
+            TD9_13Indicator.Setup newSetup = closePriceI.getValue(i).isGreaterThan(closePriceI.getValue(i - 4))
                     ? Setup.BULLISH : Setup.BEARISH;
             if(currSetup.equals(newSetup)) {
                 if(currSetup.equals(Setup.BULLISH)) {
@@ -65,7 +69,6 @@ public class TD9_13Indicator extends CachedIndicator<Integer> {
                     currCount = -1;
                 }
             }
-
             i ++;
         }
 

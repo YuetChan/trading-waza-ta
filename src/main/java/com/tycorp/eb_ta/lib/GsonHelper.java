@@ -1,10 +1,9 @@
-package tycorp.eb.lib;
+package com.tycorp.eb_ta.lib;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class GsonHelper {
