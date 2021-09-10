@@ -7,4 +7,5 @@ services:
       - ../influxdb:/etc/influxdb
     ports:
       - "8086:8086"
+    restart: always
 
