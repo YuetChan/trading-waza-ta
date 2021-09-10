@@ -60,7 +60,7 @@ public class LoadCommand implements Runnable {
             buffReader = new BufferedReader(new FileReader(lastLoadedTickerFname));
             lastLoadedTicker = buffReader.readLine();
             // Skip to last loaded ticker
-            skip = lastLoadedTicker == null ||   lastLoadedTicker == "" ? false : true;
+            skip = (lastLoadedTicker == null ||  lastLoadedTicker == "") ? false : true;
         }catch(IOException e) {
             throw e;
         }
@@ -68,7 +68,7 @@ public class LoadCommand implements Runnable {
         List<String> tickers = loadTickersFromCSV(tickersCSV);
 
         System.out.println("Total of " + tickers.size() + " tickers");
-        System.out.println("Last loaded ticker : " + lastLoadedTicker == null ? "" : lastLoadedTicker);
+        System.out.println("Last loaded ticker : " + (lastLoadedTicker == null ? "" : lastLoadedTicker));
 
         for(String ticker : tickers) {
             // Skip until find the last loaded ticker

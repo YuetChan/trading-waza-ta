@@ -3,21 +3,33 @@ Command line application for loading, processing and outputting stock data.
 
 ### Requirements
 - Evening Brew Portal running locally / remotely
-- Influx db running locally
+- docker and docker compose installed
 ### Build
     mvn package
+### Run
+    docker-compose up
     cd target
 
+A "influxdb" directory would be created in parent directory for storing influxdb data
 ### Usage
-Loading stock data
+Load stock data
        
-    java -cp <name>-<version>-jar-with-dependencies.jar tycorp.eb_ta.command.LoadCommand -l "lastLoadedTicker.txt" -t "tickers.csv"
+    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.eb_ta.command.LoadCommand -l "lastLoadedTicker.txt" -t "tickers.csv"
     
 
-Processing stock data
+Process stock data
     
-    java -cp <name>-<version>-jar-with-dependencies.jar tycorp.eb_ta.command.ProcessCommand -s "selectedTickers.txt" -t "tickers.csv" -i "indicator"
+    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.eb_ta.command.ProcessCommand -s "selectedTickers.txt" -t "tickers.csv" -i "indicator"
 
-Outputting stock data
+Output stock data
 
-    java -cp <name>-<version>-jar-with-dependencies.jar tycorp.eb_ta.command.ProcessCommand -s "selectedTickers.txt" -c "config.txt"
+    This will output stock data to Evening Brew Portal via Post "domain"/posts.
+    
+    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.eb_ta.command.ProcessCommand -s "selectedTickers.txt" -c "config.txt"
+    
+
+User should specify "domain", "useremail" and "password" in config.txt.
+    
+    example.com
+    example@gmail.com
+    password

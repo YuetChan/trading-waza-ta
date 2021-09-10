@@ -51,8 +51,7 @@ public class OutputCommand implements Runnable {
             buffReader = new BufferedReader(new FileReader(configFname));
 
             // Load the auth config from specified file
-            String authUrl = buffReader.readLine();
-            String uploadUrl = buffReader.readLine();
+            String domain = buffReader.readLine();
             String useremail = buffReader.readLine();
             String password = buffReader.readLine();
 
@@ -62,7 +61,7 @@ public class OutputCommand implements Runnable {
             authJson.addProperty("password", password);
 
             // Create auth request
-            HttpPost authPostReq = new HttpPost(authUrl);
+            HttpPost authPostReq = new HttpPost(domain + "/signin");
             authPostReq.addHeader("content-type", "application/json");
             authPostReq.setEntity(new StringEntity(authJson.toString()));
 
@@ -106,7 +105,7 @@ public class OutputCommand implements Runnable {
                         GsonHelper.createJsonElement(Arrays.asList(tags)).getAsJsonArray());
 
                 // Create post request
-                HttpPost postPostReq = new HttpPost(uploadUrl);
+                HttpPost postPostReq = new HttpPost(domain + "/posts");
                 postPostReq.setHeader("Authorization", "Bearer " + jwt);
                 postPostReq.setEntity(new StringEntity(postJson.toString()));
 

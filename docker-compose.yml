@@ -1,0 +1,10 @@
+version: "3"
+services:
+  influxdb:
+    image: influxdb:1.8
+    container_name: eb-influx
+    volumes:
+      - ../influxdb:/etc/influxdb
+    ports:
+      - "8086:8086"
+
