@@ -1,6 +1,7 @@
 package com.tycorp.eb_ta.command;
 
 import com.tycorp.eb_ta.config.InfluxConfig;
+import com.tycorp.eb_ta.extend_indicator.TD9_13Indicator;
 import com.tycorp.eb_ta.script.EbCandle;
 import lombok.SneakyThrows;
 import org.influxdb.InfluxDB;
@@ -14,9 +15,10 @@ import com.tycorp.eb_ta.extend_indicator.EbSMAIndicator;
 import com.tycorp.eb_ta.script.EbCandlesToTa4jBarSeries;
 import com.tycorp.eb_ta.lib.DateTimeHelper;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -24,6 +26,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This script will process the stock data based on customized implementation
+ *
+ * Skip to line 80 for more details
+ */
 @CommandLine.Command(
         name = "Process",
         description = "Process stock data based on specified indicator"
@@ -41,87 +48,89 @@ public class ProcessCommand implements Runnable {
             description = "CSV filename that contains the tickers list.")
     private String tickersCSV;
 
-    @CommandLine.Option(
-            names = {"-i", "--indicator"},
-            required = true,
-            description = "Indicator of choice for processing the data.")
-    private String indicator;
-
     @SneakyThrows
     @Override
     public void run() {
         InfluxDB influxDB = InfluxConfig.initInfluxConfig();
 
         List<String> loadedTickers = LoadCommand.loadTickersFromCSV(tickersCSV);
-        if(indicator.equals(EbSMAIndicator.class.getSimpleName())) {
-            for(String ticker : loadedTickers) {
-                QueryResult dailyCandleResult = influxDB.query(
-                        new Query("SELECT * FROM " + InfluxConfig.generateMeasurement(ticker)
-                                + " WHERE frq=" + "'DAILY' ORDER BY ASC"));
+        for(String ticker : loadedTickers) {
+            QueryResult dailyCandleResult = influxDB.query(
+                    new Query("SELECT * FROM " + InfluxConfig.generateMeasurement(ticker)
+                            + " WHERE frq=" + "'DAILY' ORDER BY ASC"));
 
-                System.out.println(dailyCandleResult);
-                List<QueryResult.Series> dailySeries = dailyCandleResult.getResults().get(0).getSeries();
-                List<List<Object>> vals = dailySeries.get(0).getValues();
-
-                List<EbCandle> ebCandles = new ArrayList();
-                for(var val : vals){
-                    ebCandles.add(
-                            new EbCandle(
-                                    Double.parseDouble(val.get(5).toString()), Double.parseDouble(val.get(3).toString()),
-                                    Double.parseDouble(val.get(4).toString()), Double.parseDouble(val.get(1).toString()),
-                                    ZonedDateTime.parse(val.get(6).toString())));
-                }
-
-                BarSeries barSeries = EbCandlesToTa4jBarSeries.convert(ebCandles, EbCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
-                ClosePriceIndicator closePriceI = new ClosePriceIndicator(barSeries);
-
-                ConsensioCrossIndicator consensioCrossI200 = new ConsensioCrossIndicator(
-                        new EbSMAIndicator(closePriceI, 20),
-                        new EbSMAIndicator(closePriceI, 50),
-                        new EbSMAIndicator(closePriceI, 200));
-                ConsensioCrossIndicator consensioCrossI100 = new ConsensioCrossIndicator(
-                        new EbSMAIndicator(closePriceI, 20),
-                        new EbSMAIndicator(closePriceI, 50),
-                        new EbSMAIndicator(closePriceI, 100));
-
-                System.out.println("Processed " + ticker);
-
-                List<String> tags = new ArrayList();
-                if(consensioCrossI100.getValue(barSeries.getEndIndex())) {
-                    tags.add("consensio 100");
-                    System.out.println(ticker + " has consensio 100");
-                    System.out.println("At " + barSeries.getLastBar().getEndTime());
-                }
-
-                if(consensioCrossI200.getValue(barSeries.getEndIndex())) {
-                    tags.add("consensio 200");
-                    System.out.println(ticker + " has consensio 200");
-                    System.out.println("At " + barSeries.getLastBar().getEndTime());
-                }
-
-                String line = tags.size() == 0 ? "" : ticker + "," + tags.stream().collect(Collectors.joining(",") ) + "," + DateTimeHelper.truncateTime(Instant.now().atZone(ZoneId.of("America/New_York")));
-                appendToFile(selectedTickersFname, line);
+            List<QueryResult.Series> dailySeries = dailyCandleResult.getResults().get(0).getSeries();
+            if(dailySeries == null){
+                continue;
             }
+
+            List<List<Object>> vals = dailySeries.get(0).getValues();
+
+            List<EbCandle> ebCandles = new ArrayList();
+            for(var val : vals){
+                ebCandles.add(
+                        new EbCandle(
+                                Double.parseDouble(val.get(5).toString()), Double.parseDouble(val.get(3).toString()),
+                                Double.parseDouble(val.get(4).toString()), Double.parseDouble(val.get(1).toString()),
+                                ZonedDateTime.parse(val.get(6).toString())));
+            }
+
+            BarSeries barSeries = EbCandlesToTa4jBarSeries.convert(ebCandles, EbCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
+            ClosePriceIndicator closePriceI = new ClosePriceIndicator(barSeries);
+
+            // ---------------------Provide your own indicators-------------------------
+
+            ConsensioCrossIndicator consensioCross200I = new ConsensioCrossIndicator(
+                    new EbSMAIndicator(closePriceI, 20),
+                    new EbSMAIndicator(closePriceI, 50),
+                    new EbSMAIndicator(closePriceI, 200));
+            ConsensioCrossIndicator consensioCross100I = new ConsensioCrossIndicator(
+                    new EbSMAIndicator(closePriceI, 20),
+                    new EbSMAIndicator(closePriceI, 50),
+                    new EbSMAIndicator(closePriceI, 100));
+
+            TD9_13Indicator td9_13I = new TD9_13Indicator(barSeries);
+
+            System.out.println("Processed " + ticker);
+
+            List<String> tags = new ArrayList();
+            if(consensioCross100I.getValue(barSeries.getEndIndex())) {
+                tags.add("consensio_100");
+                System.out.println(ticker + " has consensio 100");
+                System.out.println("At " + barSeries.getLastBar().getEndTime());
+            }
+
+            if(consensioCross200I.getValue(barSeries.getEndIndex())) {
+                tags.add("consensio_200");
+                System.out.println(ticker + " has consensio 200");
+                System.out.println("At " + barSeries.getLastBar().getEndTime());
+            }
+
+            if(td9_13I.getValue(barSeries.getEndIndex()) == 9) {
+                tags.add("td_9");
+                System.out.println(ticker + " has td 9");
+                System.out.println("At " + barSeries.getLastBar().getEndTime());
+            }
+
+            // ---------------------------------------------------------------------------
+
+            String line = tags.size() ==
+                    0 ? ""
+                    : ticker + ","
+                    + tags.stream().collect(Collectors.joining(",") ) + ","
+                    + DateTimeHelper.truncateTime(
+                            Instant.now().atZone(ZoneId.of("America/New_York"))).toInstant().toEpochMilli();
+            appendToFile(selectedTickersFname, line);
         }
     }
 
-    public static void appendToFile(String filename, String line) throws IOException {
-        BufferedWriter buffWriter = null;
+    public static void appendToFile(String fname, String line) throws IOException {
         try {
-            buffWriter = new BufferedWriter(new FileWriter(filename));
-            buffWriter.write(line);
-            buffWriter.newLine();
-            buffWriter.flush();
+            if(line != "") {
+                Files.write(Paths.get(fname), (line + System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+            }
         }catch (IOException e) {
             throw e;
-        }finally {
-            if (buffWriter != null) {
-                try {
-                    buffWriter.close();
-                } catch (IOException e) {
-                    throw e;
-                }
-            }
         }
     }
 

@@ -1,5 +1,5 @@
 ## Evening Brew TA
-Command line application for loading, processing and outputting stock data.
+Command line application for loading, processing and outputting(to Evening Brew Portal) stock data.
 
 ### Requirements
 - Evening Brew Portal running locally / remotely
@@ -16,18 +16,16 @@ Load stock data
        
     java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.eb_ta.command.LoadCommand -l "lastLoadedTicker.txt" -t "tickers.csv"
     
-
 Process stock data
     
-    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.eb_ta.command.ProcessCommand -s "selectedTickers.txt" -t "tickers.csv" -i "indicator"
+    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.eb_ta.command.ProcessCommand -s "selectedTickers.txt" -t "tickers.csv"
 
 Output stock data
 
-    This will output stock data to Evening Brew Portal via Post "domain"/posts.
+This will output stock data to Evening Brew Portal via Post example.com/posts.
     
     java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.eb_ta.command.ProcessCommand -s "selectedTickers.txt" -c "config.txt"
     
-
 User should specify "domain", "useremail" and "password" in config.txt.
     
     example.com

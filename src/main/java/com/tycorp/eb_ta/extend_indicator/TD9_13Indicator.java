@@ -10,7 +10,9 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
  */
 public class TD9_13Indicator extends CachedIndicator<Integer> {
 
-    private enum Setup { BULLISH, BEARISH }
+    private enum Setup {
+        BULLISH, BEARISH
+    }
     private ClosePriceIndicator closePriceI;
 
     public TD9_13Indicator(BarSeries barSeries) {
@@ -30,7 +32,7 @@ public class TD9_13Indicator extends CachedIndicator<Integer> {
         TD9_13Indicator.Setup currSetup = initSetup;
 
         int i = 5;
-        while(currSetup.equals(initSetup) && i <= index){
+        while(currSetup.equals(initSetup) && i <= index) {
             currSetup = closePriceI.getValue(i).isGreaterThan(closePriceI.getValue(i - 4))
                     ? Setup.BULLISH : Setup.BEARISH;
             i ++;
