@@ -71,7 +71,6 @@ public class OutputCommand implements Runnable {
 
             // Convert the response to string and parse it as json, then extract the jwt
             String resStr = EntityUtils.toString(res.getEntity());
-            System.out.println(resStr);
 
             String jwtStr = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
             String jwt = jwtStr.substring(1, jwtStr.length() - 1);
@@ -101,11 +100,8 @@ public class OutputCommand implements Runnable {
                 postJson.addProperty("dscription", "");
                 postJson.add("contents", new JsonArray());
 
-                postJson.add(
-                        "tickers", GsonHelper.createJsonElement(Arrays.asList(ticker)).getAsJsonArray());
-                postJson.add(
-                        "tags",
-                        GsonHelper.createJsonElement(Arrays.asList(tags)).getAsJsonArray());
+                postJson.add("tickers", GsonHelper.createJsonElement(Arrays.asList(ticker)).getAsJsonArray());
+                postJson.add("tags", GsonHelper.createJsonElement(Arrays.asList(tags)).getAsJsonArray());
 
                 // Create post request
                 HttpPost postPostReq = new HttpPost(domain + "/posts");
@@ -118,7 +114,6 @@ public class OutputCommand implements Runnable {
                 resStr = EntityUtils.toString(res.getEntity());
 
                 System.out.println(resStr);
-                Thread.sleep(7000);
             }
         } catch(IOException e) {
             throw e;
