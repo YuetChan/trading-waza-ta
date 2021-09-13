@@ -61,8 +61,8 @@ public class OutputCommand implements Runnable {
             authJson.addProperty("password", password);
 
             // Create auth request
-            HttpPost authPostReq = new HttpPost(domain + "/signin");
-            authPostReq.addHeader("content-type", "application/json");
+            HttpPost authPostReq = new HttpPost(domain + "/users/signin");
+            authPostReq.addHeader("Content-Type", "application/json");
             authPostReq.setEntity(new StringEntity(authJson.toString()));
 
             // Execute the auth request
@@ -71,7 +71,10 @@ public class OutputCommand implements Runnable {
 
             // Convert the response to string and parse it as json, then extract the jwt
             String resStr = EntityUtils.toString(res.getEntity());
-            String jwt = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
+            System.out.println(resStr);
+
+            String jwtStr = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
+            String jwt = jwtStr.substring(1, jwtStr.length() - 1);
 
             buffReader = new BufferedReader(new FileReader(selectedTickersFname));
             // Extract stock data from each line
@@ -106,6 +109,7 @@ public class OutputCommand implements Runnable {
 
                 // Create post request
                 HttpPost postPostReq = new HttpPost(domain + "/posts");
+                postPostReq.addHeader("Content-Type", "application/json");
                 postPostReq.setHeader("Authorization", "Bearer " + jwt);
                 postPostReq.setEntity(new StringEntity(postJson.toString()));
 
@@ -114,6 +118,7 @@ public class OutputCommand implements Runnable {
                 resStr = EntityUtils.toString(res.getEntity());
 
                 System.out.println(resStr);
+                Thread.sleep(7000);
             }
         } catch(IOException e) {
             throw e;
