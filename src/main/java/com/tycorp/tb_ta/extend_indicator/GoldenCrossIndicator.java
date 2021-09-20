@@ -1,17 +1,17 @@
-package com.tycorp.eb_ta.extend_indicator;
+package com.tycorp.tb_ta.extend_indicator;
 
 import org.ta4j.core.indicators.CachedIndicator;
 
 /**
  * Implementation for consensio indicator
  */
-public class ConsensioCrossIndicator extends CachedIndicator<Boolean> {
+public class GoldenCrossIndicator extends CachedIndicator<Boolean> {
 
-    private final EbSMAIndicator up;
-    private final EbSMAIndicator middle;
-    private final EbSMAIndicator low;
+    private final TbSMAIndicator up;
+    private final TbSMAIndicator middle;
+    private final TbSMAIndicator low;
 
-    public ConsensioCrossIndicator(EbSMAIndicator up, EbSMAIndicator middle, EbSMAIndicator low) {
+    public GoldenCrossIndicator(TbSMAIndicator up, TbSMAIndicator middle, TbSMAIndicator low) {
         super(up);
         this.up = up;
         this.middle = middle;

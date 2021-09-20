@@ -1,4 +1,4 @@
-package com.tycorp.eb_ta.script;
+package com.tycorp.tb_ta.script;
 
 import lombok.*;
 
@@ -8,7 +8,7 @@ import java.time.ZonedDateTime;
 @Getter(AccessLevel.PUBLIC)
 @Setter(AccessLevel.PUBLIC)
 @ToString
-public class EbCandle {
+public class TbCandle {
 
     private double open;
     private double high;

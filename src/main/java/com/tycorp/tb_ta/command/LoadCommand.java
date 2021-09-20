@@ -1,7 +1,7 @@
-package com.tycorp.eb_ta.command;
+package com.tycorp.tb_ta.command;
 
 import com.studerw.tda.model.history.FrequencyType;
-import com.tycorp.eb_ta.config.InfluxConfig;
+import com.tycorp.tb_ta.config.InfluxConfig;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -11,8 +11,8 @@ import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import picocli.CommandLine;
-import com.tycorp.eb_ta.script.EbCandle;
-import com.tycorp.eb_ta.script.EbCandlesProvider;
+import com.tycorp.tb_ta.script.TbCandle;
+import com.tycorp.tb_ta.script.TbCandlesProvider;
 
 import java.io.*;
 import java.time.ZonedDateTime;
@@ -90,13 +90,13 @@ public class LoadCommand implements Runnable {
 
             // If there are no candles, get the candle since default start date
             // Otherwise, get new candles since last end date
-            List<EbCandle> minsCandles = minsCandlesSeries == null
-                    ? EbCandlesProvider.getEbCandlesSinceDefaultStartDate(ticker, FrequencyType.minute)
-                    : EbCandlesProvider.getEbCandlesSinceLastEndDate(
+            List<TbCandle> minsCandles = minsCandlesSeries == null
+                    ? TbCandlesProvider.getTbCandlesSinceDefaultStartDate(ticker, FrequencyType.minute)
+                    : TbCandlesProvider.getTbCandlesSinceLastEndDate(
                             ticker, FrequencyType.minute, ZonedDateTime.parse(minsCandlesSeries.get(0).getValues().get(0).get(6).toString()));
 
             // Write the candles to influx db
-            for(EbCandle candle : minsCandles){
+            for(TbCandle candle : minsCandles){
                 influxDB.write(Point.measurement(measurement)
                         .time(candle.getStartTimeZdt().toInstant().toEpochMilli(), TimeUnit.MILLISECONDS)
                         .addField("zdt", candle.getStartTimeZdt().toString())
@@ -115,13 +115,13 @@ public class LoadCommand implements Runnable {
 
             // If there are no candles, get the candle since default start date
             // Otherwise, get new candles since last end date
-            List<EbCandle> dailyCandles = dailyCandlesSeries == null
-                    ? EbCandlesProvider.getEbCandlesSinceDefaultStartDate(ticker, FrequencyType.daily)
-                    : EbCandlesProvider.getEbCandlesSinceLastEndDate(
+            List<TbCandle> dailyCandles = dailyCandlesSeries == null
+                    ? TbCandlesProvider.getTbCandlesSinceDefaultStartDate(ticker, FrequencyType.daily)
+                    : TbCandlesProvider.getTbCandlesSinceLastEndDate(
                             ticker, FrequencyType.daily, ZonedDateTime.parse(dailyCandlesSeries.get(0).getValues().get(0).get(6).toString()));
 
             // Write the candles to influx db
-            for(EbCandle candle : dailyCandles){
+            for(TbCandle candle : dailyCandles){
                 influxDB.write(Point.measurement(measurement)
                         .time(candle.getStartTimeZdt().toInstant().toEpochMilli(), TimeUnit.MILLISECONDS)
                         .addField("zdt", candle.getStartTimeZdt().toString())

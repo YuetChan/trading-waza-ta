@@ -2,7 +2,7 @@ version: "3"
 services:
   influxdb:
     image: influxdb:1.8
-    container_name: eb-influx
+    container_name: tb-influx
     volumes:
       - ../influxdb:/etc/influxdb
     ports:
