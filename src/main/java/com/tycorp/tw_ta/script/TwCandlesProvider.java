@@ -1,4 +1,4 @@
-package com.tycorp.tb_ta.script;
+package com.tycorp.tw_ta.script;
 
 import com.studerw.tda.client.HttpTdaClient;
 import com.studerw.tda.client.TdaClient;
@@ -14,16 +14,16 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.tycorp.tb_ta.lib.DateTimeHelper.*;
+import static com.tycorp.tw_ta.lib.DateTimeHelper.*;
 
 /**
  * Helper functions for getting stock data from TD Ameritrade api
  */
-public class TbCandlesProvider {
+public class TwCandlesProvider {
 
     private static TdaClient CLIENT = new HttpTdaClient();
 
-    public static List<TbCandle> getTbCandlesSinceDefaultStartDate(String ticker, FrequencyType frequencyType){
+    public static List<TwCandle> getTwCandlesSinceDefaultStartDate(String ticker, FrequencyType frequencyType){
         PriceHistReq req = null;
 
         int retryCtr = 5;
@@ -56,7 +56,7 @@ public class TbCandlesProvider {
                             .build();
                 }
 
-                return candlesToTbCandles(CLIENT.priceHistory(req).getCandles(), frequencyType);
+                return candlesToTwCandles(CLIENT.priceHistory(req).getCandles(), frequencyType);
             } catch (Exception e) {
                 if (retryCtr == 0) {
                     throw e;
@@ -67,7 +67,7 @@ public class TbCandlesProvider {
         }
     }
 
-    public static List<TbCandle> getTbCandlesSinceLastEndDate(String ticker, FrequencyType frequencyType, ZonedDateTime lastEndDateZdt){
+    public static List<TwCandle> getTwCandlesSinceLastEndDate(String ticker, FrequencyType frequencyType, ZonedDateTime lastEndDateZdt){
         PriceHistReq req = null;
         long lastEndDateEpoch = zonedDateTimeToEpoch(lastEndDateZdt);
 
@@ -98,7 +98,7 @@ public class TbCandlesProvider {
                             .build();
                 }
 
-                return candlesToTbCandles(CLIENT.priceHistory(req).getCandles(), frequencyType);
+                return candlesToTwCandles(CLIENT.priceHistory(req).getCandles(), frequencyType);
             }catch(Exception e){
                 if (retryCtr == 0) {
                     throw e;
@@ -109,11 +109,11 @@ public class TbCandlesProvider {
         }
     }
 
-    private static List<TbCandle> candlesToTbCandles(List<Candle> candles, FrequencyType frequencyType) {
-        List<TbCandle> tbCandles = new ArrayList();
+    private static List<TwCandle> candlesToTwCandles(List<Candle> candles, FrequencyType frequencyType) {
+        List<TwCandle> twCandles = new ArrayList();
         for(var candle : candles){
-            tbCandles.add(
-                    new TbCandle(
+            twCandles.add(
+                    new TwCandle(
                             candle.getOpen().doubleValue(), candle.getHigh().doubleValue(),
                             candle.getLow().doubleValue(), candle.getClose().doubleValue(),
                             ZonedDateTime.ofInstant(
@@ -122,16 +122,16 @@ public class TbCandlesProvider {
         }
 
         if(frequencyType.equals(FrequencyType.daily)) {
-            tbCandles.forEach(tbCandle ->
-                tbCandle.setStartTimeZdt(
-                        tbCandle.getStartTimeZdt()
+            twCandles.forEach(twCandle ->
+                twCandle.setStartTimeZdt(
+                        twCandle.getStartTimeZdt()
                                 .toLocalDate()
                                 .atTime(LocalTime.parse("09:30"))
                                 .atZone(ZoneId.of("America/New_York")))
             );
         }
 
-        return tbCandles;
+        return twCandles;
     }
 
 }

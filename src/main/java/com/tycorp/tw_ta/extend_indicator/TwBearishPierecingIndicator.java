@@ -1,8 +1,8 @@
-package com.tycorp.tb_ta.extend_indicator;
+package com.tycorp.tw_ta.extend_indicator;
 
 /**
  * Implementation for bearish pierecing candle pattern
  */
-public class TbBearishPierecingIndicator {
+public class TwBearishPierecingIndicator {
     // Need to add implementation
 }

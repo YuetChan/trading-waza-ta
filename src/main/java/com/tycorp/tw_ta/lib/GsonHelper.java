@@ -1,4 +1,4 @@
-package com.tycorp.tb_ta.lib;
+package com.tycorp.tw_ta.lib;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;

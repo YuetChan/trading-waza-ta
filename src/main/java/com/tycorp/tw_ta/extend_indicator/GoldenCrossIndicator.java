@@ -1,4 +1,4 @@
-package com.tycorp.tb_ta.extend_indicator;
+package com.tycorp.tw_ta.extend_indicator;
 
 import org.ta4j.core.indicators.CachedIndicator;
 
@@ -7,11 +7,11 @@ import org.ta4j.core.indicators.CachedIndicator;
  */
 public class GoldenCrossIndicator extends CachedIndicator<Boolean> {
 
-    private final TbSMAIndicator up;
-    private final TbSMAIndicator middle;
-    private final TbSMAIndicator low;
+    private final TwSMAIndicator up;
+    private final TwSMAIndicator middle;
+    private final TwSMAIndicator low;
 
-    public GoldenCrossIndicator(TbSMAIndicator up, TbSMAIndicator middle, TbSMAIndicator low) {
+    public GoldenCrossIndicator(TwSMAIndicator up, TwSMAIndicator middle, TwSMAIndicator low) {
         super(up);
         this.up = up;
         this.middle = middle;

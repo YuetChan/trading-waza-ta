@@ -5,8 +5,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.tycorp</groupId>
-  <artifactId>tb_ta</artifactId>
-  <name>trading-board-ta</name>
+  <artifactId>tw_ta</artifactId>
+  <name>Trading Waza Ta</name>
+  <description>Trading Waza Ta</description>
   <version>1.0-SNAPSHOT</version>
 
   <properties>
@@ -87,7 +88,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>com.tycorp.tb_ta.TradingBoardTaApplication</mainClass>
+          <mainClass>com.tycorp.tw_ta.TradingWazaTaApplication</mainClass>
         </configuration>
       </plugin>
         <plugin>
@@ -105,7 +106,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.tycorp.tb_ta.command.LoadCommand</mainClass>
+              <mainClass>com.tycorp.tw_ta.command.LoadCommand</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

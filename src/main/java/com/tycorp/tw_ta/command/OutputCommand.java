@@ -1,4 +1,4 @@
-package com.tycorp.tb_ta.command;
+package com.tycorp.tw_ta.command;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -11,7 +11,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import picocli.CommandLine;
-import com.tycorp.tb_ta.lib.GsonHelper;
+import com.tycorp.tw_ta.lib.GsonHelper;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

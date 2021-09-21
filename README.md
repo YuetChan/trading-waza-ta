@@ -1,8 +1,8 @@
-## Trading Board TA
-Command line application for loading, processing and outputting(to Trading Board) stock data.
+## Trading Waza TA
+Command line application for loading, processing and outputting(to Trading Waza) stock data.
 
 ### Requirements
-- Trading Board running locally / remotely
+- Trading Waza running locally / remotely
 - docker and docker compose installed
 ### Build
     mvn package
@@ -14,17 +14,17 @@ A "influxdb" directory would be created in parent directory for storing influxdb
 ### Usage
 Load stock data
        
-    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.tb_ta.command.LoadCommand -l "lastLoadedTicker.txt" -t "tickers.csv"
+    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.tw_ta.command.LoadCommand -l "lastLoadedTicker.txt" -t "tickers.csv"
     
 Process stock data
     
-    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.tb_ta.command.ProcessCommand -s "selectedTickers.txt" -t "tickers.csv"
+    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.tw_ta.command.ProcessCommand -s "selectedTickers.txt" -t "tickers.csv"
 
 Output stock data
 
-This will output stock data to Trading Board via Post example.com/posts.
+This will output stock data to Trading Waza via Post example.com/posts.
     
-    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.tb_ta.command.ProcessCommand -s "selectedTickers.txt" -c "config.txt"
+    java -cp <name>-<version>-jar-with-dependencies.jar com.tycorp.tw_ta.command.ProcessCommand -s "selectedTickers.txt" -c "config.txt"
     
 User should specify "domain", "useremail" and "password" in config.txt.
     

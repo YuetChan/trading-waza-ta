@@ -1,8 +1,8 @@
-package com.tycorp.tb_ta.command;
+package com.tycorp.tw_ta.command;
 
-import com.tycorp.tb_ta.config.InfluxConfig;
-import com.tycorp.tb_ta.extend_indicator.TD9_13Indicator;
-import com.tycorp.tb_ta.script.TbCandle;
+import com.tycorp.tw_ta.config.InfluxConfig;
+import com.tycorp.tw_ta.extend_indicator.TD9_13Indicator;
+import com.tycorp.tw_ta.script.TwCandle;
 import lombok.SneakyThrows;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Query;
@@ -10,10 +10,10 @@ import org.influxdb.dto.QueryResult;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import picocli.CommandLine;
-import com.tycorp.tb_ta.extend_indicator.GoldenCrossIndicator;
-import com.tycorp.tb_ta.extend_indicator.TbSMAIndicator;
-import com.tycorp.tb_ta.script.TbCandlesToTa4jBarSeries;
-import com.tycorp.tb_ta.lib.DateTimeHelper;
+import com.tycorp.tw_ta.extend_indicator.GoldenCrossIndicator;
+import com.tycorp.tw_ta.extend_indicator.TwSMAIndicator;
+import com.tycorp.tw_ta.script.TwCandlesToTa4jBarSeries;
+import com.tycorp.tw_ta.lib.DateTimeHelper;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -66,28 +66,28 @@ public class ProcessCommand implements Runnable {
 
             List<List<Object>> vals = dailySeries.get(0).getValues();
 
-            List<TbCandle> tbCandles = new ArrayList();
+            List<TwCandle> twCandles = new ArrayList();
             for(var val : vals){
-                tbCandles.add(
-                        new TbCandle(
+                twCandles.add(
+                        new TwCandle(
                                 Double.parseDouble(val.get(5).toString()), Double.parseDouble(val.get(3).toString()),
                                 Double.parseDouble(val.get(4).toString()), Double.parseDouble(val.get(1).toString()),
                                 ZonedDateTime.parse(val.get(6).toString())));
             }
 
-            BarSeries barSeries = TbCandlesToTa4jBarSeries.convert(tbCandles, TbCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
+            BarSeries barSeries = TwCandlesToTa4jBarSeries.convert(twCandles, TwCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
             ClosePriceIndicator closePriceI = new ClosePriceIndicator(barSeries);
 
             // ---------------------Provide your own indicators-------------------------
 
             GoldenCrossIndicator consensioCross200I = new GoldenCrossIndicator(
-                    new TbSMAIndicator(closePriceI, 20),
-                    new TbSMAIndicator(closePriceI, 50),
-                    new TbSMAIndicator(closePriceI, 200));
+                    new TwSMAIndicator(closePriceI, 20),
+                    new TwSMAIndicator(closePriceI, 50),
+                    new TwSMAIndicator(closePriceI, 200));
             GoldenCrossIndicator consensioCross100I = new GoldenCrossIndicator(
-                    new TbSMAIndicator(closePriceI, 20),
-                    new TbSMAIndicator(closePriceI, 50),
-                    new TbSMAIndicator(closePriceI, 100));
+                    new TwSMAIndicator(closePriceI, 20),
+                    new TwSMAIndicator(closePriceI, 50),
+                    new TwSMAIndicator(closePriceI, 100));
 
             TD9_13Indicator td9_13I = new TD9_13Indicator(barSeries);
 

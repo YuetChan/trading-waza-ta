@@ -1,4 +1,4 @@
-package com.tycorp.tb_ta.script;
+package com.tycorp.tw_ta.script;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
@@ -7,16 +7,16 @@ import java.time.*;
 import java.util.List;
 
 /**
- * Helper functions for converting TbCandle into Ta4jBarSeries
- * Currently support convertion to different frequencies for daily and mins TbCandle
+ * Helper functions for converting TwCandle into Ta4jBarSeries
+ * Currently support convertion to different frequencies for daily and mins TwCandle
  */
-public class TbCandlesToTa4jBarSeries {
+public class TwCandlesToTa4jBarSeries {
 
     public enum Ta4jTimeframe {
         MINS, DAILY
     }
 
-    public static BarSeries convert(List<TbCandle> candles, Ta4jTimeframe timeframe, int frequency) {
+    public static BarSeries convert(List<TwCandle> candles, Ta4jTimeframe timeframe, int frequency) {
         if(timeframe.equals(Ta4jTimeframe.MINS)) {
             return candlesToBarSeriesMinsVariance(candles, frequency);
         }
@@ -27,7 +27,7 @@ public class TbCandlesToTa4jBarSeries {
         return null;
     }
 
-    private static BarSeries candlesToBarSeriesMinsVariance(List<TbCandle> candles, int frequency) {
+    private static BarSeries candlesToBarSeriesMinsVariance(List<TwCandle> candles, int frequency) {
         BarSeries barSeries = new BaseBarSeries();
 
         double factor = frequency / 5;
@@ -40,7 +40,7 @@ public class TbCandlesToTa4jBarSeries {
         ZonedDateTime endTimeZdt = null;
 
         for(int i = 0; i < candles.size() ; i ++) {
-            TbCandle ithCandle = candles.get(i);
+            TwCandle ithCandle = candles.get(i);
             if(i == 0) {
                 open = ithCandle.getOpen();
                 close = ithCandle.getClose();
@@ -83,10 +83,10 @@ public class TbCandlesToTa4jBarSeries {
         return barSeries;
     }
 
-    private static BarSeries candlesToBarSeriesDaily(List<TbCandle> candles) {
+    private static BarSeries candlesToBarSeriesDaily(List<TwCandle> candles) {
         BarSeries barSeries = new BaseBarSeries();
         for(int i = 0; i < candles.size(); i ++){
-            TbCandle ithCandle = candles.get(i);
+            TwCandle ithCandle = candles.get(i);
 
             double open = ithCandle.getOpen();
             double close = ithCandle.getClose();
