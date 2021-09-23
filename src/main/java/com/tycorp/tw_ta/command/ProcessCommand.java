@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import org.influxdb.InfluxDB;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
+import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import picocli.CommandLine;
@@ -25,6 +26,8 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.tycorp.tw_ta.lib.FileHelper.appendToFile;
 
 /**
  * This script will process the stock data based on customized implementation
@@ -66,19 +69,19 @@ public class ProcessCommand implements Runnable {
 
             List<List<Object>> vals = dailySeries.get(0).getValues();
 
-            List<TwCandle> twCandles = new ArrayList();
+            List<TwCandle> dailyCandles = new ArrayList();
             for(var val : vals){
-                twCandles.add(
+                dailyCandles.add(
                         new TwCandle(
                                 Double.parseDouble(val.get(5).toString()), Double.parseDouble(val.get(3).toString()),
                                 Double.parseDouble(val.get(4).toString()), Double.parseDouble(val.get(1).toString()),
                                 ZonedDateTime.parse(val.get(6).toString())));
             }
 
-            BarSeries barSeries = TwCandlesToTa4jBarSeries.convert(twCandles, TwCandlesToTa4jBarSeries.Ta4jTimeframe.MINS, 15);
+            BarSeries barSeries = TwCandlesToTa4jBarSeries.convert(dailyCandles, TwCandlesToTa4jBarSeries.Ta4jTimeframe.DAILY, 0);
             ClosePriceIndicator closePriceI = new ClosePriceIndicator(barSeries);
 
-            // ---------------------Provide your own indicators-------------------------
+            // ----Provide your own indicators-------------------------------------------
 
             GoldenCrossIndicator consensioCross200I = new GoldenCrossIndicator(
                     new TwSMAIndicator(closePriceI, 20),
@@ -91,9 +94,23 @@ public class ProcessCommand implements Runnable {
 
             TD9_13Indicator td9_13I = new TD9_13Indicator(barSeries);
 
+            // ----End--------------------------------------------------------------------
+
             System.out.println("Processed " + ticker);
 
             List<String> tags = new ArrayList();
+
+            // tag[0], ... tag [3] are reserved for open, high, close and low price
+            Bar lastBar = barSeries.getLastBar();
+
+            tags.add(lastBar.getOpenPrice().toString());
+            tags.add(lastBar.getHighPrice().toString());
+            tags.add(lastBar.getClosePrice().toString());
+            tags.add(lastBar.getLowPrice().toString());
+
+
+            // ----Provide your own implementation based on your indicators----------
+
             if(consensioCross100I.getValue(barSeries.getEndIndex())) {
                 tags.add("consensio_100");
                 System.out.println(ticker + " has consensio 100");
@@ -112,25 +129,18 @@ public class ProcessCommand implements Runnable {
                 System.out.println("At " + barSeries.getLastBar().getEndTime());
             }
 
-            // ---------------------------------------------------------------------------
+            // ----End-----------------------------------------------------------------
 
-            String line = tags.size() ==
-                    0 ? ""
+            String line = tags.size() <= 4
+                    ? ""
                     : ticker + ","
                     + tags.stream().collect(Collectors.joining(",") ) + ","
+
+                    // tag[length - 1] is reserved for processedAt
                     + DateTimeHelper.truncateTime(
                             Instant.now().atZone(ZoneId.of("America/New_York"))).toInstant().toEpochMilli();
-            appendToFile(selectedTickersFname, line);
-        }
-    }
 
-    public static void appendToFile(String fname, String line) throws IOException {
-        try {
-            if(line != "") {
-                Files.write(Paths.get(fname), (line + System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
-            }
-        }catch (IOException e) {
-            throw e;
+            appendToFile(selectedTickersFname, line);
         }
     }
 

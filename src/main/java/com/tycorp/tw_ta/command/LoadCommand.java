@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.tycorp.tw_ta.lib.FileHelper.writeToFile;
+
 /**
  * This script will load the stock data from TD Ameritrade api into database
  * It will load the daily and mins candles data.
@@ -166,16 +168,6 @@ public class LoadCommand implements Runnable {
         }
 
         return tickers;
-    }
-
-    public static void writeToFile(String filename, String content) throws IOException {
-        try {
-            FileWriter fWriter = new FileWriter(filename);
-            fWriter.write(content);
-            fWriter.close();
-        } catch (IOException e) {
-            throw e;
-        }
     }
 
     public static void main(String[] args) {
