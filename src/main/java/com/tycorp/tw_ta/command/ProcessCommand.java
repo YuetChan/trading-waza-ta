@@ -83,11 +83,11 @@ public class ProcessCommand implements Runnable {
 
             // ----Provide your own indicators-------------------------------------------
 
-            GoldenCrossIndicator consensioCross200I = new GoldenCrossIndicator(
+            GoldenCrossIndicator goldenCross200I = new GoldenCrossIndicator(
                     new TwSMAIndicator(closePriceI, 20),
                     new TwSMAIndicator(closePriceI, 50),
                     new TwSMAIndicator(closePriceI, 200));
-            GoldenCrossIndicator consensioCross100I = new GoldenCrossIndicator(
+            GoldenCrossIndicator goldenCross100I = new GoldenCrossIndicator(
                     new TwSMAIndicator(closePriceI, 20),
                     new TwSMAIndicator(closePriceI, 50),
                     new TwSMAIndicator(closePriceI, 100));
@@ -98,43 +98,58 @@ public class ProcessCommand implements Runnable {
 
             System.out.println("Processed " + ticker);
 
-            List<String> tags = new ArrayList();
+            List<String> indicators = new ArrayList();
+            List<String> priceDetail = new ArrayList();
 
             // tag[0], ... tag [3] are reserved for open, high, close and low price
             Bar lastBar = barSeries.getLastBar();
 
-            tags.add(lastBar.getOpenPrice().toString());
-            tags.add(lastBar.getHighPrice().toString());
-            tags.add(lastBar.getClosePrice().toString());
-            tags.add(lastBar.getLowPrice().toString());
+            priceDetail.add(lastBar.getOpenPrice().toString());
+            priceDetail.add(lastBar.getHighPrice().toString());
+            priceDetail.add(lastBar.getClosePrice().toString());
+            priceDetail.add(lastBar.getLowPrice().toString());
+
+            int endIndex = barSeries.getEndIndex();
+            if(endIndex > 1) {
+                Long lastClosePrice = barSeries.getBar(endIndex).getClosePrice().longValue();
+                Long closePrice = barSeries.getBar(endIndex - 1).getClosePrice().longValue();
+                Long change = (lastClosePrice - closePrice) / lastClosePrice;
+                priceDetail.add(change.toString());
+            }
 
 
-            // ----Provide your own implementation based on your indicators----------
+            // ----Provide your own conditions based on your indicators----------
 
-            if(consensioCross100I.getValue(barSeries.getEndIndex())) {
-                tags.add("consensio_100");
+            if(goldenCross100I.getValue(barSeries.getEndIndex())) {
+                indicators.add("golden_cross_100");
                 System.out.println(ticker + " has consensio 100");
                 System.out.println("At " + barSeries.getLastBar().getEndTime());
             }
 
-            if(consensioCross200I.getValue(barSeries.getEndIndex())) {
-                tags.add("consensio_200");
+            if(goldenCross200I.getValue(barSeries.getEndIndex())) {
+                indicators.add("golden_cross_200");
                 System.out.println(ticker + " has consensio 200");
                 System.out.println("At " + barSeries.getLastBar().getEndTime());
             }
 
             if(td9_13I.getValue(barSeries.getEndIndex()) == 9) {
-                tags.add("td_9");
-                System.out.println(ticker + " has td 9");
+                indicators.add("td_9_top");
+                System.out.println(ticker + " has td 9 top");
+                System.out.println("At " + barSeries.getLastBar().getEndTime());
+            }
+
+            if(td9_13I.getValue(barSeries.getEndIndex()) == -9) {
+                indicators.add("td_9_bottom");
+                System.out.println(ticker + " has td 9 bottom");
                 System.out.println("At " + barSeries.getLastBar().getEndTime());
             }
 
             // ----End-----------------------------------------------------------------
 
-            String line = tags.size() <= 4
+
+            String line = indicators.size() == 0
                     ? ""
-                    : ticker + ","
-                    + tags.stream().collect(Collectors.joining(",") ) + ","
+                    : ticker + ","  + priceDetail.stream().collect(Collectors.joining(",")) + "," + indicators.stream().collect(Collectors.joining(",") ) + ","
 
                     // tag[length - 1] is reserved for processedAt
                     + DateTimeHelper.truncateTime(

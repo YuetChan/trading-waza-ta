@@ -87,8 +87,11 @@ public class OutputCommand implements Runnable {
                 // The first word is ticker
                 String ticker = words[0];
                 // The word in between first and last words are tags
-                String[] tags = new String[words.length - 2];
-                System.arraycopy(words, 1, tags, 0, tags.length);
+                String[] priceDetail = new String[5];
+                System.arraycopy(words, 1, priceDetail, 0, priceDetail.length);
+
+                String[] indicators = new String[words.length - priceDetail.length - 1];
+                System.arraycopy(words, 1 + priceDetail.length, indicators, 0, indicators.length);
 
                 // Create post request payload
                 JsonObject postJson = new JsonObject();
@@ -96,15 +99,20 @@ public class OutputCommand implements Runnable {
                 postJson.addProperty("slaveId", 1l);
                 postJson.addProperty("userId", 1l);
 
-                postJson.addProperty("title", "");
-                postJson.addProperty("dscription", "");
-                postJson.add("contents", new JsonArray());
+                postJson.add("ticker", GsonHelper.createJsonElement(ticker).getAsJsonObject());
 
-                postJson.add("tickers", GsonHelper.createJsonElement(Arrays.asList(ticker)).getAsJsonArray());
-                postJson.add("tags", GsonHelper.createJsonElement(Arrays.asList(tags)).getAsJsonArray());
+                JsonObject priceDetailJson = GsonHelper.getJsonObject();
+                priceDetailJson.addProperty("open", priceDetail[0]);
+                priceDetailJson.addProperty("high", priceDetail[1]);
+                priceDetailJson.addProperty("close", priceDetail[2]);
+                priceDetailJson.addProperty("low", priceDetail[3]);
+                priceDetailJson.addProperty("change", priceDetail[4]);
+
+                postJson.add("priceDetail", priceDetailJson);
+                postJson.add("indicators", GsonHelper.createJsonElement(Arrays.asList(indicators)).getAsJsonArray());
 
                 // Create post request
-                HttpPost postPostReq = new HttpPost(domain + "/posts");
+                HttpPost postPostReq = new HttpPost(domain + "/rows");
                 postPostReq.addHeader("Content-Type", "application/json");
                 postPostReq.setHeader("Authorization", "Bearer " + jwt);
                 postPostReq.setEntity(new StringEntity(postJson.toString()));
