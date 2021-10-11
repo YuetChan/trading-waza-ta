@@ -89,7 +89,7 @@ public class OutputCommand implements Runnable {
                 String[] priceDetail = new String[5];
                 System.arraycopy(words, 1, priceDetail, 0, priceDetail.length);
 
-                String[] indicators = new String[words.length - priceDetail.length - 1];
+                String[] indicators = new String[words.length - priceDetail.length - 2];
                 System.arraycopy(words, 1 + priceDetail.length, indicators, 0, indicators.length);
 
                 // Create post request payload
