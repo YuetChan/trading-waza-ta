@@ -155,7 +155,10 @@ public class ProcessCommand implements Runnable {
                     + DateTimeHelper.truncateTime(
                             Instant.now().atZone(ZoneId.of("America/New_York"))).toInstant().toEpochMilli();
 
-            appendToFile(selectedTickersFname, line);
+            if(line != ""){
+                appendToFile(selectedTickersFname, line);
+            }
+
         }
     }
 

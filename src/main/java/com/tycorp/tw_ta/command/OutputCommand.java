@@ -1,6 +1,5 @@
 package com.tycorp.tw_ta.command;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.SneakyThrows;
@@ -99,29 +98,31 @@ public class OutputCommand implements Runnable {
                 postJson.addProperty("slaveId", 1l);
                 postJson.addProperty("userId", 1l);
 
-                postJson.add("ticker", GsonHelper.createJsonElement(ticker).getAsJsonObject());
+                postJson.addProperty("ticker", ticker);
 
                 JsonObject priceDetailJson = GsonHelper.getJsonObject();
-                priceDetailJson.addProperty("open", priceDetail[0]);
-                priceDetailJson.addProperty("high", priceDetail[1]);
-                priceDetailJson.addProperty("close", priceDetail[2]);
-                priceDetailJson.addProperty("low", priceDetail[3]);
-                priceDetailJson.addProperty("change", priceDetail[4]);
+                priceDetailJson.addProperty("open", Double.parseDouble(priceDetail[0]));
+                priceDetailJson.addProperty("high", Double.parseDouble(priceDetail[1]));
+                priceDetailJson.addProperty("close", Double.parseDouble(priceDetail[2]));
+                priceDetailJson.addProperty("low", Double.parseDouble(priceDetail[3]));
+                priceDetailJson.addProperty("change", Double.parseDouble(priceDetail[4]));
 
                 postJson.add("priceDetail", priceDetailJson);
                 postJson.add("indicators", GsonHelper.createJsonElement(Arrays.asList(indicators)).getAsJsonArray());
 
+                System.out.println(postJson.toString());
+
                 // Create post request
-                HttpPost postPostReq = new HttpPost(domain + "/rows");
-                postPostReq.addHeader("Content-Type", "application/json");
-                postPostReq.setHeader("Authorization", "Bearer " + jwt);
-                postPostReq.setEntity(new StringEntity(postJson.toString()));
+//                HttpPost postPostReq = new HttpPost(domain + "/rows");
+//                postPostReq.addHeader("Content-Type", "application/json");
+//                postPostReq.setHeader("Authorization", "Bearer " + jwt);
+//                postPostReq.setEntity(new StringEntity(postJson.toString()));
 
                 // Execute post request
-                res = httpClient.execute(postPostReq);
-                resStr = EntityUtils.toString(res.getEntity());
-
-                System.out.println(resStr);
+//                res = httpClient.execute(postPostReq);
+//                resStr = EntityUtils.toString(res.getEntity());
+//
+//                System.out.println(resStr);
             }
         } catch(IOException e) {
             throw e;
