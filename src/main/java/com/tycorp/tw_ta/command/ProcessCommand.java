@@ -110,10 +110,10 @@ public class ProcessCommand implements Runnable {
             priceDetail.add(lastBar.getLowPrice().toString());
 
             int endIndex = barSeries.getEndIndex();
-            if(endIndex > 1) {
-                Long lastClosePrice = barSeries.getBar(endIndex).getClosePrice().longValue();
-                Long closePrice = barSeries.getBar(endIndex - 1).getClosePrice().longValue();
-                Long change = (lastClosePrice - closePrice) / lastClosePrice;
+            if(endIndex >= 1) {
+                Double lastClosePrice = barSeries.getBar(endIndex).getClosePrice().doubleValue();
+                Double closePrice = barSeries.getBar(endIndex - 1).getClosePrice().doubleValue();
+                Double change = (lastClosePrice - closePrice) / closePrice;
                 priceDetail.add(change.toString());
             }
 
