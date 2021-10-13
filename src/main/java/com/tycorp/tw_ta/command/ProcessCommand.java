@@ -150,10 +150,7 @@ public class ProcessCommand implements Runnable {
             String line = indicators.size() == 0
                     ? ""
                     : ticker + ","  + priceDetail.stream().collect(Collectors.joining(",")) + "," + indicators.stream().collect(Collectors.joining(",") ) + ","
-
-                    // tag[length - 1] is reserved for processedAt
-                    + DateTimeHelper.truncateTime(
-                            Instant.now().atZone(ZoneId.of("America/New_York"))).toInstant().toEpochMilli();
+                    + DateTimeHelper.truncateTime(Instant.now().atZone(ZoneId.of("America/New_York"))).toInstant().toEpochMilli();
 
             if(line != ""){
                 appendToFile(selectedTickersFname, line);

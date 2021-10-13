@@ -6,14 +6,14 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
 
 /**
- * Implementation for bullish pierecing candle pattern
+ * Implementation for bearish pierecing candle pattern
  */
-public class TwBullishPiercingIndicator extends CachedIndicator<Boolean>{
+public class TwBearishPiercingIndicator extends CachedIndicator<Boolean> {
 
     private OpenPriceIndicator openPriceI;
     private ClosePriceIndicator closePriceI;
 
-    protected TwBullishPiercingIndicator(BarSeries barSeries)  {
+    protected TwBearishPiercingIndicator(BarSeries barSeries) {
         super(barSeries);
         openPriceI = new OpenPriceIndicator(barSeries);
         closePriceI = new ClosePriceIndicator(barSeries);
@@ -21,16 +21,16 @@ public class TwBullishPiercingIndicator extends CachedIndicator<Boolean>{
 
     @Override
     protected Boolean calculate(int index) {
-        if(index < 1 || closePriceI.getBarSeries().getBarCount() < 1){
+        if(index < 1 || closePriceI.getBarSeries().getBarCount() < 1) {
             return false;
         }
 
         double yesterdayClose = closePriceI.getValue(index - 1).doubleValue();
 
-        boolean openLowerThenOrEqualYesterdayClose = openPriceI.getValue(index).doubleValue() <= yesterdayClose;
-        boolean closeHigherThenYesterdayClose = closePriceI.getValue(index).doubleValue() > yesterdayClose;
+        boolean openHigherThenOrEqualYesterdayClose = openPriceI.getValue(index).doubleValue() >= yesterdayClose;
+        boolean closeLowerThenYesterdayClose = closePriceI.getValue(index).doubleValue() < yesterdayClose;
 
-        return openLowerThenOrEqualYesterdayClose && closeHigherThenYesterdayClose;
+        return openHigherThenOrEqualYesterdayClose && closeLowerThenYesterdayClose;
     }
 
 }
