@@ -110,19 +110,20 @@ public class OutputCommand implements Runnable {
                 postJson.add("priceDetail", priceDetailJson);
                 postJson.add("indicators", GsonHelper.createJsonElement(Arrays.asList(indicators)).getAsJsonArray());
 
-                System.out.println(postJson.toString());
-
                 // Create post request
-//                HttpPost postPostReq = new HttpPost(domain + "/rows");
-//                postPostReq.addHeader("Content-Type", "application/json");
-//                postPostReq.setHeader("Authorization", "Bearer " + jwt);
-//                postPostReq.setEntity(new StringEntity(postJson.toString()));
+                HttpPost postPostReq = new HttpPost(domain + "/rows");
+                postPostReq.addHeader("Content-Type", "application/json");
+                postPostReq.setHeader("Authorization", "Bearer " + jwt);
+                postPostReq.setEntity(new StringEntity(postJson.toString()));
 
                 // Execute post request
-//                res = httpClient.execute(postPostReq);
-//                resStr = EntityUtils.toString(res.getEntity());
-//
-//                System.out.println(resStr);
+                res = httpClient.execute(postPostReq);
+                resStr = EntityUtils.toString(res.getEntity());
+
+                if(resStr.contains("message")) {
+                    break;
+                }
+                System.out.println(resStr);
             }
         } catch(IOException e) {
             throw e;

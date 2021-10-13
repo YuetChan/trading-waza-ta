@@ -6,7 +6,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
 
 /**
- * Implementation for bullish pierecing candle pattern
+ * Implementation for bullish piercing candle pattern
  */
 public class TwBullishPiercingIndicator extends CachedIndicator<Boolean>{
 

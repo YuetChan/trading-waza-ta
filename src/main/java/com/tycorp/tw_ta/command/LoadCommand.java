@@ -86,31 +86,6 @@ public class LoadCommand implements Runnable {
             String measurement = InfluxConfig.generateMeasurement(ticker);
 
             // Query the candles
-//            QueryResult minsCandleResult = influxDB.query(
-//                    new Query("SELECT * FROM " + measurement + " WHERE frq=" + "'5_MINS' ORDER BY DESC"));
-//            List<QueryResult.Series> minsCandlesSeries = minsCandleResult.getResults().get(0).getSeries();
-//
-//            // If there are no candles, get the candle since default start date
-//            // Otherwise, get new candles since last end date
-//            List<TwCandle> minsCandles = minsCandlesSeries == null
-//                    ? TwCandlesProvider.getTwCandlesSinceDefaultStartDate(ticker, FrequencyType.minute)
-//                    : TwCandlesProvider.getTwCandlesSinceLastEndDate(
-//                            ticker, FrequencyType.minute, ZonedDateTime.parse(minsCandlesSeries.get(0).getValues().get(0).get(6).toString()));
-//
-//            // Write the candles to influx db
-//            for(TwCandle candle : minsCandles){
-//                influxDB.write(Point.measurement(measurement)
-//                        .time(candle.getStartTimeZdt().toInstant().toEpochMilli(), TimeUnit.MILLISECONDS)
-//                        .addField("zdt", candle.getStartTimeZdt().toString())
-//                        .tag("frq", "5_MINS")
-//                        .addField("open", candle.getOpen())
-//                        .addField("high", candle.getHigh())
-//                        .addField("low", candle.getLow())
-//                        .addField("close", candle.getClose())
-//                        .build());
-//            }
-
-            // Query the candles
             QueryResult dailyCandlesResult = influxDB.query(
                     new Query("SELECT * FROM " + measurement  + " WHERE frq=" + "'DAILY' ORDER BY DESC"));
             List<QueryResult.Series> dailyCandlesSeries = dailyCandlesResult.getResults().get(0).getSeries();
