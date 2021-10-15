@@ -1,6 +1,7 @@
 package com.tycorp.tw_ta.command;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tycorp.tw_ta.script.TwUUIDRequest;
@@ -85,6 +86,8 @@ public class OutputCommand implements Runnable {
             String jwt = jwtStr.substring(1, jwtStr.length() - 1);
 
             buffReader = new BufferedReader(new FileReader(selectedTickersFname));
+            JsonArray postJsonBatch = new JsonArray();
+
             // Extract stock data from each line
             for(String line = buffReader.readLine(); line != null; line = buffReader.readLine()) {
                 // Stock data separated by ,
@@ -120,24 +123,25 @@ public class OutputCommand implements Runnable {
                 postJson.add("priceDetail", priceDetailJson);
                 postJson.add("indicators", GsonHelper.createJsonElement(Arrays.asList(indicators)).getAsJsonArray());
 
-                // Create post request
-                HttpPost postPostReq = new HttpPost(domain + "/rows");
-                postPostReq.addHeader("Content-Type", "application/json");
-                postPostReq.setHeader("Authorization", "Bearer " + jwt);
-                postPostReq.setEntity(new StringEntity(postJson.toString()));
+                // Added to postJson Batch
+                postJsonBatch.add(postJson);
+            }
 
-                // Execute post request
-                res = httpClient.execute(postPostReq);
-                resStr = EntityUtils.toString(res.getEntity());
+            // Create post request
+            HttpPost postPostReq = new HttpPost(domain + "/rows/batch");
+            postPostReq.addHeader("Content-Type", "application/json");
+            postPostReq.setHeader("Authorization", "Bearer " + jwt);
+            postPostReq.setEntity(new StringEntity(postJsonBatch.toString()));
 
-                System.out.println(resStr);
+            // Execute post request
+            res = httpClient.execute(postPostReq);
+            resStr = EntityUtils.toString(res.getEntity());
 
-                if(resStr.contains("message")) {
-                    break;
-                }else {
-                    TwUUIDRequest uuidReq = new Gson().fromJson(resStr, TwUUIDRequest.class);
-                    appendToFile(uuidFname, uuidReq.getRequestUUID());
-                }
+            System.out.println(resStr);
+
+            if(!resStr.contains("message")) {
+                TwUUIDRequest uuidReq = new Gson().fromJson(resStr, TwUUIDRequest.class);
+                appendToFile(uuidFname, uuidReq.getRequestUUID());
             }
         } catch(IOException e) {
             throw e;
