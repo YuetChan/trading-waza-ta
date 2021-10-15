@@ -10,9 +10,6 @@ public class FileHelper {
 
     public static void appendToFile(String fname, String line) throws IOException {
         try {
-//            if(line != "") {
-//
-//            }
             Files.write(Paths.get(fname), (line + System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
         }catch (IOException e) {
             throw e;

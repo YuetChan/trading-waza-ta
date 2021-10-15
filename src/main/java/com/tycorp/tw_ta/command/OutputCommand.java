@@ -1,7 +1,9 @@
 package com.tycorp.tw_ta.command;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tycorp.tw_ta.script.TwUUIDRequest;
 import lombok.SneakyThrows;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -16,6 +18,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+
+import static com.tycorp.tw_ta.lib.FileHelper.appendToFile;
 
 /**
  * This script will output the stock data from specified file into specified api
@@ -41,6 +45,12 @@ public class OutputCommand implements Runnable {
             required = true,
             description = "Filename that contains output configs.")
     private String configFname;
+
+    @CommandLine.Option(
+            names = {"-u", "--uuid"},
+            required = true,
+            description = "Filename that contains request UUIDs.")
+    private String uuidFname;
 
     @SneakyThrows
     @Override
@@ -120,10 +130,14 @@ public class OutputCommand implements Runnable {
                 res = httpClient.execute(postPostReq);
                 resStr = EntityUtils.toString(res.getEntity());
 
+                System.out.println(resStr);
+
                 if(resStr.contains("message")) {
                     break;
+                }else {
+                    TwUUIDRequest uuidReq = new Gson().fromJson(resStr, TwUUIDRequest.class);
+                    appendToFile(uuidFname, uuidReq.getRequestUUID());
                 }
-                System.out.println(resStr);
             }
         } catch(IOException e) {
             throw e;
