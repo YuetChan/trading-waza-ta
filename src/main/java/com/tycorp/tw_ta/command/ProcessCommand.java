@@ -123,34 +123,33 @@ public class ProcessCommand implements Runnable {
             if(goldenCross100I.getValue(barSeries.getEndIndex())) {
                 indicators.add("golden_cross_100");
                 System.out.println(ticker + " has consensio 100");
-                System.out.println("At " + barSeries.getLastBar().getEndTime());
+                System.out.println("At " + lastBar.getEndTime());
             }
 
             if(goldenCross200I.getValue(barSeries.getEndIndex())) {
                 indicators.add("golden_cross_200");
                 System.out.println(ticker + " has consensio 200");
-                System.out.println("At " + barSeries.getLastBar().getEndTime());
+                System.out.println("At " + lastBar.getEndTime());
             }
 
             if(td9_13I.getValue(barSeries.getEndIndex()) == 9) {
                 indicators.add("td_9_top");
                 System.out.println(ticker + " has td 9 top");
-                System.out.println("At " + barSeries.getLastBar().getEndTime());
+                System.out.println("At " + lastBar.getEndTime());
             }
 
             if(td9_13I.getValue(barSeries.getEndIndex()) == -9) {
                 indicators.add("td_9_bottom");
                 System.out.println(ticker + " has td 9 bottom");
-                System.out.println("At " + barSeries.getLastBar().getEndTime());
+                System.out.println("At " + lastBar.getEndTime());
             }
 
             // ----End-----------------------------------------------------------------
 
-
             String line = indicators.size() == 0
                     ? ""
                     : ticker + ","  + priceDetail.stream().collect(Collectors.joining(",")) + "," + indicators.stream().collect(Collectors.joining(",") ) + ","
-                    + DateTimeHelper.truncateTime(Instant.now().atZone(ZoneId.of("America/New_York"))).toInstant().toEpochMilli();
+                    + lastBar.getEndTime().toInstant().toEpochMilli();
 
             if(line != ""){
                 appendToFile(selectedTickersFname, line);
