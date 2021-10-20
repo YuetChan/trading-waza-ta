@@ -131,6 +131,9 @@ public class OutputCommand implements Runnable {
             HttpPost postPostReq = new HttpPost(domain + "/rows/batch");
             postPostReq.addHeader("Content-Type", "application/json");
             postPostReq.setHeader("Authorization", "Bearer " + jwt);
+            // replace {{}} with your kong consumer apikey for key-auth plugin
+            postPostReq.setHeader("apikey", "{{}}");
+
             postPostReq.setEntity(new StringEntity(postJsonBatch.toString()));
 
             // Execute post request
