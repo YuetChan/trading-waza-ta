@@ -146,16 +146,22 @@ public class ProcessCommand implements Runnable {
 
             // ----End-----------------------------------------------------------------
 
+            Long processedAt = lastBar.getEndTime().toInstant().toEpochMilli();
+            ZonedDateTime processedAtZdt = DateTimeHelper.truncateTime(Instant.ofEpochMilli(processedAt).atZone(ZoneId.of("America/New_York")));
+            Long truncatedProcessedAt = processedAtZdt.toInstant().toEpochMilli();
+
             String line = indicators.size() == 0
                     ? ""
                     : ticker + ","  + priceDetail.stream().collect(Collectors.joining(",")) + "," + indicators.stream().collect(Collectors.joining(",") ) + ","
-                    + lastBar.getEndTime().toInstant().toEpochMilli();
+                    + truncatedProcessedAt;
 
-            if(line != ""){
+            if(line != "") {
                 appendToFile(selectedTickersFname, line);
             }
-
         }
+
+        System.out.println("All tickers processed");
+        System.exit(0);
     }
 
     public static void main(String[] args) {

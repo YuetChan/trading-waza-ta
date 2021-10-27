@@ -12,6 +12,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Value;
 import picocli.CommandLine;
 import com.tycorp.tw_ta.lib.GsonHelper;
 
@@ -52,6 +53,9 @@ public class OutputCommand implements Runnable {
             required = true,
             description = "Filename that contains request UUIDs.")
     private String uuidFname;
+
+    @Value("${kong.apikey}")
+    private String apikey;
 
     @SneakyThrows
     @Override
@@ -132,7 +136,7 @@ public class OutputCommand implements Runnable {
             postPostReq.addHeader("Content-Type", "application/json");
             postPostReq.setHeader("Authorization", "Bearer " + jwt);
             // replace {{}} with your kong consumer apikey for key-auth plugin
-            postPostReq.setHeader("apikey", "{{}}");
+            postPostReq.setHeader("apikey", apikey);
 
             postPostReq.setEntity(new StringEntity(postJsonBatch.toString()));
 
