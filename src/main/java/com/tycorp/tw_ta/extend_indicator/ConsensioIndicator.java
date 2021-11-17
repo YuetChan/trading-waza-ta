@@ -2,16 +2,13 @@ package com.tycorp.tw_ta.extend_indicator;
 
 import org.ta4j.core.indicators.CachedIndicator;
 
-/**
- * Implementation for consensio indicator
- */
-public class GoldenCrossIndicator extends CachedIndicator<Boolean> {
+public class ConsensioIndicator extends CachedIndicator<Boolean>  {
 
     private final TwSMAIndicator up;
     private final TwSMAIndicator middle;
     private final TwSMAIndicator low;
 
-    public GoldenCrossIndicator(TwSMAIndicator up, TwSMAIndicator middle, TwSMAIndicator low) {
+    public ConsensioIndicator(TwSMAIndicator up, TwSMAIndicator middle, TwSMAIndicator low) {
         super(up);
         this.up = up;
         this.middle = middle;
@@ -30,15 +27,10 @@ public class GoldenCrossIndicator extends CachedIndicator<Boolean> {
             return false;
         }
 
-        int head = i;
-        int tail = i - 1;
+        boolean consensio = up.getValue(i).isGreaterThan(middle.getValue(i))
+                && middle.getValue(i).isGreaterThan(low.getValue(i));
 
-        boolean crossed = up.getValue(tail).isGreaterThan(middle.getValue(tail))
-                && middle.getValue(tail).isGreaterThan(low.getValue(tail));
-        boolean justCrossed = up.getValue(head).isGreaterThan(middle.getValue(head))
-                && middle.getValue(head).isGreaterThan(low.getValue(head));
-
-        if(!crossed && justCrossed) {
+        if(consensio) {
             return true;
         }
 

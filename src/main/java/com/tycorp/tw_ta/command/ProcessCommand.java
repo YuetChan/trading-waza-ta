@@ -1,6 +1,7 @@
 package com.tycorp.tw_ta.command;
 
 import com.tycorp.tw_ta.config.InfluxConfig;
+import com.tycorp.tw_ta.extend_indicator.ConsensioIndicator;
 import com.tycorp.tw_ta.extend_indicator.TD9_13Indicator;
 import com.tycorp.tw_ta.script.TwCandle;
 import lombok.SneakyThrows;
@@ -9,6 +10,10 @@ import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.indicators.candles.BearishEngulfingIndicator;
+import org.ta4j.core.indicators.candles.BearishHaramiIndicator;
+import org.ta4j.core.indicators.candles.BullishEngulfingIndicator;
+import org.ta4j.core.indicators.candles.BullishHaramiIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import picocli.CommandLine;
 import com.tycorp.tw_ta.extend_indicator.GoldenCrossIndicator;
@@ -16,10 +21,6 @@ import com.tycorp.tw_ta.extend_indicator.TwSMAIndicator;
 import com.tycorp.tw_ta.script.TwCandlesToTa4jBarSeries;
 import com.tycorp.tw_ta.lib.DateTimeHelper;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -83,16 +84,32 @@ public class ProcessCommand implements Runnable {
 
             // ----Provide your own indicators-------------------------------------------
 
-            GoldenCrossIndicator goldenCross200I = new GoldenCrossIndicator(
+            GoldenCrossIndicator goldenCrossSMA252I = new GoldenCrossIndicator(
                     new TwSMAIndicator(closePriceI, 20),
                     new TwSMAIndicator(closePriceI, 50),
                     new TwSMAIndicator(closePriceI, 200));
-            GoldenCrossIndicator goldenCross100I = new GoldenCrossIndicator(
+            GoldenCrossIndicator goldenCrossSMA251I = new GoldenCrossIndicator(
+                    new TwSMAIndicator(closePriceI, 20),
+                    new TwSMAIndicator(closePriceI, 50),
+                    new TwSMAIndicator(closePriceI, 100));
+
+            ConsensioIndicator consensioSMA252I = new ConsensioIndicator(
+                    new TwSMAIndicator(closePriceI, 20),
+                    new TwSMAIndicator(closePriceI, 50),
+                    new TwSMAIndicator(closePriceI, 200));
+
+            ConsensioIndicator consensioSMA251I = new ConsensioIndicator(
                     new TwSMAIndicator(closePriceI, 20),
                     new TwSMAIndicator(closePriceI, 50),
                     new TwSMAIndicator(closePriceI, 100));
 
             TD9_13Indicator td9_13I = new TD9_13Indicator(barSeries);
+
+            BullishEngulfingIndicator bullishEngulfingI = new BullishEngulfingIndicator(barSeries);
+            BearishEngulfingIndicator bearishEngulfingI = new BearishEngulfingIndicator(barSeries);
+
+            BullishHaramiIndicator bullishHaramiI = new BullishHaramiIndicator(barSeries);
+            BearishHaramiIndicator bearishHaramiI = new BearishHaramiIndicator(barSeries);
 
             // ----End--------------------------------------------------------------------
 
@@ -117,30 +134,65 @@ public class ProcessCommand implements Runnable {
                 priceDetail.add(change.toString());
             }
 
-
             // ----Provide your own conditions based on your indicators----------
 
-            if(goldenCross100I.getValue(barSeries.getEndIndex())) {
-                indicators.add("golden_cross_100");
-                System.out.println(ticker + " has consensio 100");
+            if(goldenCrossSMA252I.getValue(endIndex)) {
+                indicators.add("SMA_20_50_200_cross");
+                System.out.println(ticker + " has SMA 20 50 200 cross");
                 System.out.println("At " + lastBar.getEndTime());
             }
 
-            if(goldenCross200I.getValue(barSeries.getEndIndex())) {
-                indicators.add("golden_cross_200");
-                System.out.println(ticker + " has consensio 200");
+            if(goldenCrossSMA251I.getValue(endIndex)) {
+                indicators.add("SMA_20_50_100_cross");
+                System.out.println(ticker + " has SMA 20 50 100 cross");
                 System.out.println("At " + lastBar.getEndTime());
             }
 
-            if(td9_13I.getValue(barSeries.getEndIndex()) == 9) {
+            if(consensioSMA252I.getValue(endIndex)) {
+                indicators.add("SMA_20_50_200_consensio");
+                System.out.println(ticker + " has SMA 20 50 200 consensio");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(consensioSMA251I.getValue(endIndex)) {
+                indicators.add("SMA_20_50_100_consensio");
+                System.out.println(ticker + " has SMA 20 50 100 consensio");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(td9_13I.getValue(endIndex) == 9) {
                 indicators.add("td_9_top");
                 System.out.println(ticker + " has td 9 top");
                 System.out.println("At " + lastBar.getEndTime());
             }
 
-            if(td9_13I.getValue(barSeries.getEndIndex()) == -9) {
+            if(td9_13I.getValue(endIndex) == -9) {
                 indicators.add("td_9_bottom");
                 System.out.println(ticker + " has td 9 bottom");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(bullishEngulfingI.getValue(endIndex)) {
+                indicators.add("bullish_engulfing");
+                System.out.println(ticker + " bullish engulfing");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(bearishEngulfingI.getValue(endIndex)) {
+                indicators.add("bearish_engulfing");
+                System.out.println(ticker + " bearish engulfing");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(bullishHaramiI.getValue(endIndex)) {
+                indicators.add("bullish_harami");
+                System.out.println(ticker + " bullish harami");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(bearishHaramiI.getValue(endIndex)) {
+                indicators.add("bearish_harami");
+                System.out.println(ticker + " bearish harami");
                 System.out.println("At " + lastBar.getEndTime());
             }
 
