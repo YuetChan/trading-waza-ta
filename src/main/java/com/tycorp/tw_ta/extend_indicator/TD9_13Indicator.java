@@ -13,6 +13,7 @@ public class TD9_13Indicator extends CachedIndicator<Integer> {
     private enum Setup {
         BULLISH, BEARISH
     }
+
     private ClosePriceIndicator closePriceI;
 
     public TD9_13Indicator(BarSeries barSeries) {

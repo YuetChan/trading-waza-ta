@@ -1,8 +1,7 @@
 package com.tycorp.tw_ta.command;
 
 import com.tycorp.tw_ta.config.InfluxConfig;
-import com.tycorp.tw_ta.extend_indicator.ConsensioIndicator;
-import com.tycorp.tw_ta.extend_indicator.TD9_13Indicator;
+import com.tycorp.tw_ta.extend_indicator.*;
 import com.tycorp.tw_ta.script.TwCandle;
 import lombok.SneakyThrows;
 import org.influxdb.InfluxDB;
@@ -16,8 +15,6 @@ import org.ta4j.core.indicators.candles.BullishEngulfingIndicator;
 import org.ta4j.core.indicators.candles.BullishHaramiIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import picocli.CommandLine;
-import com.tycorp.tw_ta.extend_indicator.GoldenCrossIndicator;
-import com.tycorp.tw_ta.extend_indicator.TwSMAIndicator;
 import com.tycorp.tw_ta.script.TwCandlesToTa4jBarSeries;
 import com.tycorp.tw_ta.lib.DateTimeHelper;
 
@@ -84,12 +81,27 @@ public class ProcessCommand implements Runnable {
 
             // ----Provide your own indicators-------------------------------------------
 
-            GoldenCrossIndicator goldenCrossSMA252I = new GoldenCrossIndicator(
+            EMAGoldenCrossIndicator goldenCrossEMA2050I = new EMAGoldenCrossIndicator(
+                    new TwEMAIndicator(closePriceI, 20),
+                    new TwEMAIndicator(closePriceI, 50));
+
+            EMAGoldenCrossIndicator goldenCrossEMA50200I = new EMAGoldenCrossIndicator(
+                    new TwEMAIndicator(closePriceI, 50),
+                    new TwEMAIndicator(closePriceI, 200));
+
+            EMAGoldenCrossIndicator goldenCrossEMA50100I = new EMAGoldenCrossIndicator(
+                    new TwEMAIndicator(closePriceI, 50),
+                    new TwEMAIndicator(closePriceI, 100));
+
+            SMAGoldenCrossIndicator goldenCrossSMA2050I = new SMAGoldenCrossIndicator(
                     new TwSMAIndicator(closePriceI, 20),
+                    new TwSMAIndicator(closePriceI, 50));
+
+            SMAGoldenCrossIndicator goldenCrossSMA50200I = new SMAGoldenCrossIndicator(
                     new TwSMAIndicator(closePriceI, 50),
                     new TwSMAIndicator(closePriceI, 200));
-            GoldenCrossIndicator goldenCrossSMA251I = new GoldenCrossIndicator(
-                    new TwSMAIndicator(closePriceI, 20),
+
+            SMAGoldenCrossIndicator goldenCrossSMA50100I = new SMAGoldenCrossIndicator(
                     new TwSMAIndicator(closePriceI, 50),
                     new TwSMAIndicator(closePriceI, 100));
 
@@ -118,7 +130,6 @@ public class ProcessCommand implements Runnable {
             List<String> indicators = new ArrayList();
             List<String> priceDetail = new ArrayList();
 
-            // tag[0], ... tag [3] are reserved for open, high, close and low price
             Bar lastBar = barSeries.getLastBar();
 
             priceDetail.add(lastBar.getOpenPrice().toString());
@@ -136,15 +147,39 @@ public class ProcessCommand implements Runnable {
 
             // ----Provide your own conditions based on your indicators----------
 
-            if(goldenCrossSMA252I.getValue(endIndex)) {
-                indicators.add("SMA_20_50_200_cross");
-                System.out.println(ticker + " has SMA 20 50 200 cross");
+            if(goldenCrossEMA2050I.getValue(endIndex)) {
+                indicators.add("EMA_20_50_golden_cross");
+                System.out.println(ticker + " has EMA 20 50 golden cross");
                 System.out.println("At " + lastBar.getEndTime());
             }
 
-            if(goldenCrossSMA251I.getValue(endIndex)) {
-                indicators.add("SMA_20_50_100_cross");
-                System.out.println(ticker + " has SMA 20 50 100 cross");
+            if(goldenCrossEMA50200I.getValue(endIndex)) {
+                indicators.add("EMA_50_200_golden_cross");
+                System.out.println(ticker + " has EMA 50 200 golden cross");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(goldenCrossEMA50100I.getValue(endIndex)) {
+                indicators.add("EMA_50_100_golden_cross");
+                System.out.println(ticker + " has EMA 50 100 golden cross");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(goldenCrossSMA2050I.getValue(endIndex)) {
+                indicators.add("SMA_20_50_golden_cross");
+                System.out.println(ticker + " has SMA 20 50 golden cross");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(goldenCrossSMA50200I.getValue(endIndex)) {
+                indicators.add("SMA_50_200_golden_cross");
+                System.out.println(ticker + " has SMA 50 200 golden cross");
+                System.out.println("At " + lastBar.getEndTime());
+            }
+
+            if(goldenCrossSMA50100I.getValue(endIndex)) {
+                indicators.add("SMA_50_100_golden_cross");
+                System.out.println(ticker + " has SMA 50 100 golden cross");
                 System.out.println("At " + lastBar.getEndTime());
             }
 
