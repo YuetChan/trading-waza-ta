@@ -1,7 +1,12 @@
 package com.tycorp.tw_ta.command;
 
 import com.tycorp.tw_ta.config.InfluxConfig;
-import com.tycorp.tw_ta.extend_indicator.*;
+import com.tycorp.tw_ta.extend_indicator.level_1.TD9_13Indicator;
+import com.tycorp.tw_ta.extend_indicator.level_1.TwEMAIndicator;
+import com.tycorp.tw_ta.extend_indicator.level_1.TwSMAIndicator;
+import com.tycorp.tw_ta.extend_indicator.level_2.ConsensioIndicator;
+import com.tycorp.tw_ta.extend_indicator.level_2.EMAGoldenCrossIndicator;
+import com.tycorp.tw_ta.extend_indicator.level_2.SMAGoldenCrossIndicator;
 import com.tycorp.tw_ta.script.TwCandle;
 import lombok.SneakyThrows;
 import org.influxdb.InfluxDB;
@@ -56,19 +61,17 @@ public class ProcessCommand implements Runnable {
 
         List<String> loadedTickers = LoadCommand.loadTickersFromCSV(tickersCSV);
         for(String ticker : loadedTickers) {
-            QueryResult dailyCandleResult = influxDB.query(
-                    new Query("SELECT * FROM " + InfluxConfig.generateMeasurement(ticker)
-                            + " WHERE frq=" + "'DAILY' ORDER BY ASC"));
+            QueryResult dailyCandleQry = influxDB.query(
+                    new Query("SELECT * FROM " + InfluxConfig.generateMeasurement(ticker) + " WHERE frq=" + "'DAILY' ORDER BY ASC"));
 
-            List<QueryResult.Series> dailySeries = dailyCandleResult.getResults().get(0).getSeries();
+            List<QueryResult.Series> dailySeries = dailyCandleQry.getResults().get(0).getSeries();
             if(dailySeries == null){
                 continue;
             }
 
             List<List<Object>> vals = dailySeries.get(0).getValues();
-
             List<TwCandle> dailyCandles = new ArrayList();
-            for(var val : vals){
+            for(var val : vals) {
                 dailyCandles.add(
                         new TwCandle(
                                 Double.parseDouble(val.get(5).toString()), Double.parseDouble(val.get(3).toString()),
@@ -76,10 +79,12 @@ public class ProcessCommand implements Runnable {
                                 ZonedDateTime.parse(val.get(6).toString())));
             }
 
-            BarSeries barSeries = TwCandlesToTa4jBarSeries.convert(dailyCandles, TwCandlesToTa4jBarSeries.Ta4jTimeframe.DAILY, 0);
+            BarSeries barSeries = TwCandlesToTa4jBarSeries.convert(dailyCandles, TwCandlesToTa4jBarSeries.Ta4jTimeframe.DAILY);
             ClosePriceIndicator closePriceI = new ClosePriceIndicator(barSeries);
 
-            // ----Provide your own indicators-------------------------------------------
+            // ----provide your own indicators-------------------------------------------
+
+            // ----leve_2 indicator------------------------------------------------------
 
             EMAGoldenCrossIndicator goldenCrossEMA2050I = new EMAGoldenCrossIndicator(
                     new TwEMAIndicator(closePriceI, 20),
@@ -115,6 +120,8 @@ public class ProcessCommand implements Runnable {
                     new TwSMAIndicator(closePriceI, 50),
                     new TwSMAIndicator(closePriceI, 100));
 
+            // ----leve_1 indicator-------------------------------------------------------
+
             TD9_13Indicator td9_13I = new TD9_13Indicator(barSeries);
 
             BullishEngulfingIndicator bullishEngulfingI = new BullishEngulfingIndicator(barSeries);
@@ -123,7 +130,7 @@ public class ProcessCommand implements Runnable {
             BullishHaramiIndicator bullishHaramiI = new BullishHaramiIndicator(barSeries);
             BearishHaramiIndicator bearishHaramiI = new BearishHaramiIndicator(barSeries);
 
-            // ----End--------------------------------------------------------------------
+            // ----end--------------------------------------------------------------------
 
             System.out.println("Processed " + ticker);
 
@@ -145,7 +152,7 @@ public class ProcessCommand implements Runnable {
                 priceDetail.add(change.toString());
             }
 
-            // ----Provide your own conditions based on your indicators----------
+            // ----provide your own conditions based on your indicators----------
 
             if(goldenCrossEMA2050I.getValue(endIndex)) {
                 indicators.add("EMA_20_50_golden_cross");

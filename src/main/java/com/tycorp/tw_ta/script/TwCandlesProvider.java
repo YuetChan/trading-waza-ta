@@ -33,9 +33,7 @@ public class TwCandlesProvider {
                     req = PriceHistReq.Builder.priceHistReq()
                             .withSymbol(ticker)
                             .withStartDate(
-                                    zonedDateTimeToEpoch(
-                                            ZonedDateTime.ofInstant(Instant.now(), ZoneId.of("America/New_York"))
-                                                    .minusDays(730)))
+                                    zonedDateTimeToEpoch(ZonedDateTime.ofInstant(Instant.now(), ZoneId.of("America/New_York")).minusDays(730)))
                             .withPeriodType(PeriodType.day)
                             .withExtendedHours(false)
 
@@ -116,9 +114,7 @@ public class TwCandlesProvider {
                     new TwCandle(
                             candle.getOpen().doubleValue(), candle.getHigh().doubleValue(),
                             candle.getLow().doubleValue(), candle.getClose().doubleValue(),
-                            ZonedDateTime.ofInstant(
-                                    Instant.ofEpochMilli(candle.getDatetime()),
-                                    ZoneId.of("America/New_York"))));
+                            ZonedDateTime.ofInstant(Instant.ofEpochMilli(candle.getDatetime()), ZoneId.of("America/New_York"))));
         }
 
         if(frequencyType.equals(FrequencyType.daily)) {
@@ -126,8 +122,7 @@ public class TwCandlesProvider {
                 twCandle.setStartTimeZdt(
                         twCandle.getStartTimeZdt()
                                 .toLocalDate()
-                                .atTime(LocalTime.parse("09:30"))
-                                .atZone(ZoneId.of("America/New_York")))
+                                .atTime(LocalTime.parse("09:30")).atZone(ZoneId.of("America/New_York")))
             );
         }
 

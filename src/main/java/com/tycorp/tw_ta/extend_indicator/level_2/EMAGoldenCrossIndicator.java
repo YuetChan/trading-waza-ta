@@ -1,16 +1,14 @@
-package com.tycorp.tw_ta.extend_indicator;
+package com.tycorp.tw_ta.extend_indicator.level_2;
 
+import com.tycorp.tw_ta.extend_indicator.level_1.TwEMAIndicator;
 import org.ta4j.core.indicators.CachedIndicator;
 
-/**
- * Implementation for golden cross indicator
- */
-public class SMAGoldenCrossIndicator extends CachedIndicator<Boolean> {
+public class EMAGoldenCrossIndicator extends CachedIndicator<Boolean> {
 
-    private final TwSMAIndicator up;
-    private final TwSMAIndicator low;
+    private final TwEMAIndicator up;
+    private final TwEMAIndicator low;
 
-    public SMAGoldenCrossIndicator(TwSMAIndicator up, TwSMAIndicator low) {
+    public EMAGoldenCrossIndicator(TwEMAIndicator up, TwEMAIndicator low) {
         super(up);
         this.up = up;
         this.low = low;

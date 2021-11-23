@@ -61,29 +61,30 @@ public class OutputCommand implements Runnable {
     @Override
     public void run() {
         BufferedReader buffReader;
+
         try {
             buffReader = new BufferedReader(new FileReader(configFname));
 
-            // Load the auth config from specified file
+            // load the auth config from specified file
             String domain = buffReader.readLine();
             String useremail = buffReader.readLine();
             String password = buffReader.readLine();
 
-            // Create auth request payload
+            // create auth request payload
             JsonObject authJson = new JsonObject();
             authJson.addProperty("useremail", useremail);
             authJson.addProperty("password", password);
 
-            // Create auth request
+            // create auth request
             HttpPost authPostReq = new HttpPost(domain + "/users/signin");
             authPostReq.addHeader("Content-Type", "application/json");
             authPostReq.setEntity(new StringEntity(authJson.toString()));
 
-            // Execute the auth request
+            // execute the auth request
             CloseableHttpClient httpClient = HttpClients.createDefault();
             CloseableHttpResponse res = httpClient.execute(authPostReq);
 
-            // Convert the response to string and parse it as json, then extract the jwt
+            // convert the response to string and parse it as json, then extract the jwt
             String resStr = EntityUtils.toString(res.getEntity());
 
             String jwtStr = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
@@ -92,27 +93,26 @@ public class OutputCommand implements Runnable {
             buffReader = new BufferedReader(new FileReader(selectedTickersFname));
             JsonArray postJsonBatch = new JsonArray();
 
-            // Extract stock data from each line
+            // extract stock data from each line
             for(String line = buffReader.readLine(); line != null; line = buffReader.readLine()) {
-                // Stock data separated by ,
+                // stock data separated by ,
                 String[] words = line.split(",");
 
-                // The last word is processedAt
+                // the last word is processedAt
                 String processedAt = words[words.length - 1];
 
-                // The first word is ticker
+                // the first word is ticker
                 String ticker = words[0];
-                // The word in between first and last words are tags
+                // the word in between first and last words are tags
                 String[] priceDetail = new String[5];
                 System.arraycopy(words, 1, priceDetail, 0, priceDetail.length);
 
                 String[] indicators = new String[words.length - priceDetail.length - 2];
                 System.arraycopy(words, 1 + priceDetail.length, indicators, 0, indicators.length);
 
-                // Create post request payload
+                // create post request payload
                 JsonObject postJson = new JsonObject();
                 postJson.addProperty("processedAt", processedAt);
-                postJson.addProperty("slaveId", 1l);
                 postJson.addProperty("userId", 1l);
 
                 postJson.addProperty("ticker", ticker);
@@ -122,25 +122,28 @@ public class OutputCommand implements Runnable {
                 priceDetailJson.addProperty("high", Double.parseDouble(priceDetail[1]));
                 priceDetailJson.addProperty("close", Double.parseDouble(priceDetail[2]));
                 priceDetailJson.addProperty("low", Double.parseDouble(priceDetail[3]));
+
                 priceDetailJson.addProperty("change", Double.parseDouble(priceDetail[4]));
 
                 postJson.add("priceDetail", priceDetailJson);
+
                 postJson.add("indicators", GsonHelper.createJsonElement(Arrays.asList(indicators)).getAsJsonArray());
 
-                // Added to postJson Batch
+                // added to postJson Batch
                 postJsonBatch.add(postJson);
             }
 
-            // Create post request
+            // create post request
             HttpPost postPostReq = new HttpPost(domain + "/rows/batch");
             postPostReq.addHeader("Content-Type", "application/json");
             postPostReq.setHeader("Authorization", "Bearer " + jwt);
+
             // replace {{}} with your kong consumer apikey for key-auth plugin
             postPostReq.setHeader("apikey", apikey);
 
             postPostReq.setEntity(new StringEntity(postJsonBatch.toString()));
 
-            // Execute post request
+            // execute post request
             res = httpClient.execute(postPostReq);
             resStr = EntityUtils.toString(res.getEntity());
 

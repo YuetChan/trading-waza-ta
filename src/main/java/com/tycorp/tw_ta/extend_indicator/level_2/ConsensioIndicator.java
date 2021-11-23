@@ -1,5 +1,6 @@
-package com.tycorp.tw_ta.extend_indicator;
+package com.tycorp.tw_ta.extend_indicator.level_2;
 
+import com.tycorp.tw_ta.extend_indicator.level_1.TwSMAIndicator;
 import org.ta4j.core.indicators.CachedIndicator;
 
 public class ConsensioIndicator extends CachedIndicator<Boolean>  {

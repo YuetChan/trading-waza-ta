@@ -13,15 +13,12 @@ import java.util.List;
 public class TwCandlesToTa4jBarSeries {
 
     public enum Ta4jTimeframe {
-        MINS, DAILY
+        DAILY
     }
 
-    public static BarSeries convert(List<TwCandle> candles, Ta4jTimeframe timeframe, int frequency) {
-        if(timeframe.equals(Ta4jTimeframe.MINS)) {
-            return candlesToBarSeriesMinsVariance(candles, frequency);
-        }
+    public static BarSeries convert(List<TwCandle> candles, Ta4jTimeframe timeframe) {
         if(timeframe.equals(Ta4jTimeframe.DAILY)) {
-            return candlesToBarSeriesDaily(candles);
+            return candlesToBarSeries_daily(candles);
         }
 
         return null;
@@ -83,7 +80,7 @@ public class TwCandlesToTa4jBarSeries {
         return barSeries;
     }
 
-    private static BarSeries candlesToBarSeriesDaily(List<TwCandle> candles) {
+    private static BarSeries candlesToBarSeries_daily(List<TwCandle> candles) {
         BarSeries barSeries = new BaseBarSeries();
         for(int i = 0; i < candles.size(); i ++){
             TwCandle ithCandle = candles.get(i);

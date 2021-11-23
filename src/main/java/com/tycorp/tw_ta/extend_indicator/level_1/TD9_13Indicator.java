@@ -1,4 +1,4 @@
-package com.tycorp.tw_ta.extend_indicator;
+package com.tycorp.tw_ta.extend_indicator.level_1;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.CachedIndicator;

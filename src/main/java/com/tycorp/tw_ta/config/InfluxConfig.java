@@ -15,8 +15,7 @@ public class InfluxConfig {
         InfluxDB influxDB = InfluxDBFactory.connect(INFLUXDB_URL);
 
         influxDB.createDatabase(INFLUXDB_NAME);
-        influxDB.createRetentionPolicy(
-                DEFAULT_RETENTION_POLICY, INFLUXDB_NAME, "3000d", 1, true);
+        influxDB.createRetentionPolicy(DEFAULT_RETENTION_POLICY, INFLUXDB_NAME, "3000d", 1, true);
 
         influxDB.setDatabase(INFLUXDB_NAME);
 
