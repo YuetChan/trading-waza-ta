@@ -1,12 +1,10 @@
 package com.tycorp.tw_ta.command;
 
+import com.tycorp._ta.extend_indicator.level_2.ConsensioIndicator;
+import com.tycorp._ta.extend_indicator.level_2.SMAGoldenCrossIndicator;
 import com.tycorp.tw_ta.config.InfluxConfig;
 import com.tycorp.tw_ta.extend_indicator.level_1.TD9_13Indicator;
-import com.tycorp.tw_ta.extend_indicator.level_1.TwEMAIndicator;
-import com.tycorp.tw_ta.extend_indicator.level_1.TwSMAIndicator;
-import com.tycorp.tw_ta.extend_indicator.level_2.ConsensioIndicator;
 import com.tycorp.tw_ta.extend_indicator.level_2.EMAGoldenCrossIndicator;
-import com.tycorp.tw_ta.extend_indicator.level_2.SMAGoldenCrossIndicator;
 import com.tycorp.tw_ta.script.TwCandle;
 import lombok.SneakyThrows;
 import org.influxdb.InfluxDB;
@@ -14,6 +12,8 @@ import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.candles.BearishEngulfingIndicator;
 import org.ta4j.core.indicators.candles.BearishHaramiIndicator;
 import org.ta4j.core.indicators.candles.BullishEngulfingIndicator;
@@ -87,38 +87,38 @@ public class ProcessCommand implements Runnable {
             // ----leve_2 indicator------------------------------------------------------
 
             EMAGoldenCrossIndicator goldenCrossEMA2050I = new EMAGoldenCrossIndicator(
-                    new TwEMAIndicator(closePriceI, 20),
-                    new TwEMAIndicator(closePriceI, 50));
+                    new EMAIndicator(closePriceI, 20),
+                    new EMAIndicator(closePriceI, 50));
 
             EMAGoldenCrossIndicator goldenCrossEMA50200I = new EMAGoldenCrossIndicator(
-                    new TwEMAIndicator(closePriceI, 50),
-                    new TwEMAIndicator(closePriceI, 200));
+                    new EMAIndicator(closePriceI, 50),
+                    new EMAIndicator(closePriceI, 200));
 
             EMAGoldenCrossIndicator goldenCrossEMA50100I = new EMAGoldenCrossIndicator(
-                    new TwEMAIndicator(closePriceI, 50),
-                    new TwEMAIndicator(closePriceI, 100));
+                    new EMAIndicator(closePriceI, 50),
+                    new EMAIndicator(closePriceI, 100));
 
             SMAGoldenCrossIndicator goldenCrossSMA2050I = new SMAGoldenCrossIndicator(
-                    new TwSMAIndicator(closePriceI, 20),
-                    new TwSMAIndicator(closePriceI, 50));
+                    new SMAIndicator(closePriceI, 20),
+                    new SMAIndicator(closePriceI, 50));
 
             SMAGoldenCrossIndicator goldenCrossSMA50200I = new SMAGoldenCrossIndicator(
-                    new TwSMAIndicator(closePriceI, 50),
-                    new TwSMAIndicator(closePriceI, 200));
+                    new SMAIndicator(closePriceI, 50),
+                    new SMAIndicator(closePriceI, 200));
 
             SMAGoldenCrossIndicator goldenCrossSMA50100I = new SMAGoldenCrossIndicator(
-                    new TwSMAIndicator(closePriceI, 50),
-                    new TwSMAIndicator(closePriceI, 100));
+                    new SMAIndicator(closePriceI, 50),
+                    new SMAIndicator(closePriceI, 100));
 
             ConsensioIndicator consensioSMA252I = new ConsensioIndicator(
-                    new TwSMAIndicator(closePriceI, 20),
-                    new TwSMAIndicator(closePriceI, 50),
-                    new TwSMAIndicator(closePriceI, 200));
+                    new SMAIndicator(closePriceI, 20),
+                    new SMAIndicator(closePriceI, 50),
+                    new SMAIndicator(closePriceI, 200));
 
             ConsensioIndicator consensioSMA251I = new ConsensioIndicator(
-                    new TwSMAIndicator(closePriceI, 20),
-                    new TwSMAIndicator(closePriceI, 50),
-                    new TwSMAIndicator(closePriceI, 100));
+                    new SMAIndicator(closePriceI, 20),
+                    new SMAIndicator(closePriceI, 50),
+                    new SMAIndicator(closePriceI, 100));
 
             // ----leve_1 indicator-------------------------------------------------------
 
@@ -149,6 +149,7 @@ public class ProcessCommand implements Runnable {
                 Double lastClosePrice = barSeries.getBar(endIndex).getClosePrice().doubleValue();
                 Double closePrice = barSeries.getBar(endIndex - 1).getClosePrice().doubleValue();
                 Double change = (lastClosePrice - closePrice) / closePrice;
+
                 priceDetail.add(change.toString());
             }
 

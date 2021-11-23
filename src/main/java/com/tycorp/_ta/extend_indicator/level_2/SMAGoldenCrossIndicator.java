@@ -1,25 +1,20 @@
-package com.tycorp.tw_ta.extend_indicator.level_2;
+package com.tycorp._ta.extend_indicator.level_2;
 
-import com.tycorp.tw_ta.extend_indicator.level_1.TwSMAIndicator;
 import org.ta4j.core.indicators.CachedIndicator;
+import org.ta4j.core.indicators.SMAIndicator;
 
 /**
- * Implementation for golden cross indicator
+ * Implementation for SMA golden cross
  */
 public class SMAGoldenCrossIndicator extends CachedIndicator<Boolean> {
 
-    private final TwSMAIndicator up;
-    private final TwSMAIndicator low;
+    private final SMAIndicator up;
+    private final SMAIndicator low;
 
-    public SMAGoldenCrossIndicator(TwSMAIndicator up, TwSMAIndicator low) {
+    public SMAGoldenCrossIndicator(SMAIndicator up, SMAIndicator low) {
         super(up);
         this.up = up;
         this.low = low;
-
-        boolean areCountsAligned = up.getBarCount() < low.getBarCount();
-        if(!areCountsAligned) {
-            throw new IllegalArgumentException("Incorrect bar count");
-        }
     }
 
     @Override

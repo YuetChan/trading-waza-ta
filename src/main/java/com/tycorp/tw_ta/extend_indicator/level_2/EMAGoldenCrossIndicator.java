@@ -1,22 +1,20 @@
 package com.tycorp.tw_ta.extend_indicator.level_2;
 
-import com.tycorp.tw_ta.extend_indicator.level_1.TwEMAIndicator;
 import org.ta4j.core.indicators.CachedIndicator;
+import org.ta4j.core.indicators.EMAIndicator;
 
+/**
+ * Implementation for EMA golden cross
+ */
 public class EMAGoldenCrossIndicator extends CachedIndicator<Boolean> {
 
-    private final TwEMAIndicator up;
-    private final TwEMAIndicator low;
+    private final EMAIndicator up;
+    private final EMAIndicator low;
 
-    public EMAGoldenCrossIndicator(TwEMAIndicator up, TwEMAIndicator low) {
+    public EMAGoldenCrossIndicator(EMAIndicator up, EMAIndicator low) {
         super(up);
         this.up = up;
         this.low = low;
-
-        boolean areCountsAligned = up.getBarCount() < low.getBarCount();
-        if(!areCountsAligned) {
-            throw new IllegalArgumentException("Incorrect bar count");
-        }
     }
 
     @Override

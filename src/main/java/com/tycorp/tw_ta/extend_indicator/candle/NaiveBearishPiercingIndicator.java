@@ -1,4 +1,4 @@
-package com.tycorp.tw_ta.extend_indicator.level_1;
+package com.tycorp.tw_ta.extend_indicator.candle;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.CachedIndicator;
@@ -8,12 +8,12 @@ import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
 /**
  * Implementation for bearish piercing candle pattern
  */
-public class TwBearishPiercingIndicator extends CachedIndicator<Boolean> {
+public class NaiveBearishPiercingIndicator extends CachedIndicator<Boolean> {
 
     private OpenPriceIndicator openPriceI;
     private ClosePriceIndicator closePriceI;
 
-    protected TwBearishPiercingIndicator(BarSeries barSeries) {
+    protected NaiveBearishPiercingIndicator(BarSeries barSeries) {
         super(barSeries);
         openPriceI = new OpenPriceIndicator(barSeries);
         closePriceI = new ClosePriceIndicator(barSeries);
