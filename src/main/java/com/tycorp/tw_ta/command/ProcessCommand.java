@@ -1,7 +1,7 @@
 package com.tycorp.tw_ta.command;
 
-import com.tycorp._ta.extend_indicator.level_2.ConsensioIndicator;
-import com.tycorp._ta.extend_indicator.level_2.SMAGoldenCrossIndicator;
+import com.tycorp.tw_ta.extend_indicator.level_2.ConsensioIndicator;
+import com.tycorp.tw_ta.extend_indicator.level_2.SMAGoldenCrossIndicator;
 import com.tycorp.tw_ta.config.InfluxConfig;
 import com.tycorp.tw_ta.extend_indicator.level_1.TD9_13Indicator;
 import com.tycorp.tw_ta.extend_indicator.level_2.EMAGoldenCrossIndicator;

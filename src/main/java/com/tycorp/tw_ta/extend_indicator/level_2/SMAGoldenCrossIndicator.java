@@ -1,4 +1,4 @@
-package com.tycorp._ta.extend_indicator.level_2;
+package com.tycorp.tw_ta.extend_indicator.level_2;
 
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
