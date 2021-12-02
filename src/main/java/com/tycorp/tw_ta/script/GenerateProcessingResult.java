@@ -199,14 +199,16 @@ public class GenerateProcessingResult implements Runnable {
         }
 
         Long endTimeAt = ithBar.getEndTime().toInstant().toEpochMilli();
+        Long processedAt = Instant.now().toEpochMilli();
+
         ZonedDateTime processedAtZdt = DateTimeHelper.truncateTime(Instant.ofEpochMilli(endTimeAt).atZone(ZoneId.of("America/New_York")));
-        Long truncatedEndTimeAt = processedAtZdt.toInstant().toEpochMilli();
+        Long truncatedProcessedAt = processedAtZdt.toInstant().toEpochMilli();
 
         String line = indicators.size() == 0
                 ? ""
                 : ticker + ","  + priceDetail.stream().collect(Collectors.joining(","))
                 + "," + indicators.stream().collect(Collectors.joining(",") )
-                + "," + truncatedEndTimeAt;
+                + "," + endTimeAt + "," + truncatedProcessedAt;
 
         if(line != "") {
           appendToFile(resultFname, line);
@@ -220,9 +222,9 @@ public class GenerateProcessingResult implements Runnable {
 
   public List<QueryResult.Series> getInfluxDbSeriesByMeasurement(String measurement) {
     // 1500 days ago would guarantee to query at least 200 candles
-    QueryResult dailyCandleQry = this.influxDB.query(
+    QueryResult candleQry = this.influxDB.query(
             new Query("SELECT * FROM " + measurement + " WHERE frq=" + "'DAILY' AND time > now() - 1500d ORDER BY ASC"));
-    return dailyCandleQry.getResults().get(0).getSeries();
+    return candleQry.getResults().get(0).getSeries();
   }
 
   public static void main(String[] args) {
