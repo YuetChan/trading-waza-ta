@@ -19,7 +19,6 @@ import com.tycorp.tw_ta.lib.GsonHelper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
 
 import static com.tycorp.tw_ta.lib.FileHelper.appendToFile;
@@ -55,9 +54,11 @@ public class OutputResultToRemoteRepo implements Runnable {
           description = "Filename that contains request UUID.")
   private String uuidFname;
 
-
+  // required for kong
   @Value("${kong.apikey}")
   private String apikey;
+
+  private BufferedReader buffReader;
 
   private String signInURL = "/users/signin";
   private String batchURL = "/rows/batch";
@@ -72,8 +73,6 @@ public class OutputResultToRemoteRepo implements Runnable {
   @SneakyThrows
   @Override
   public void run() {
-    BufferedReader buffReader;
-
     try {
       buffReader = new BufferedReader(new FileReader(configFname));
 
@@ -123,6 +122,7 @@ public class OutputResultToRemoteRepo implements Runnable {
         postJson.addProperty("processedAt", processedAt);
 
         postJson.addProperty("userId", 1l);
+
         postJson.addProperty("ticker", ticker);
 
         priceDetailJson.addProperty("open", Double.parseDouble(priceDetail[0]));
@@ -139,18 +139,16 @@ public class OutputResultToRemoteRepo implements Runnable {
         postJsonBatch.add(postJson);
       }
 
-      // create post request
-      HttpPost postPostReq = new HttpPost(domain + batchURL);
-      postPostReq.addHeader("Content-Type", "application/json");
-      postPostReq.setHeader("Authorization", "Bearer " + jwt);
+      // create post request for row batch
+      HttpPost batchPostReq = new HttpPost(domain + batchURL);
+      batchPostReq.addHeader("Content-Type", "application/json");
+      batchPostReq.setHeader("Authorization", "Bearer " + jwt);
 
-      // kong specific implementation
-      postPostReq.setHeader("apikey", apikey);
-
-      postPostReq.setEntity(new StringEntity(postJsonBatch.toString()));
+      batchPostReq.setHeader("apikey", apikey);
+      batchPostReq.setEntity(new StringEntity(postJsonBatch.toString()));
 
       // execute post request
-      res = httpClient.execute(postPostReq);
+      res = httpClient.execute(batchPostReq);
       resStr = EntityUtils.toString(res.getEntity());
 
       System.out.println(resStr);
@@ -159,6 +157,8 @@ public class OutputResultToRemoteRepo implements Runnable {
         UUIDRequest uuidReq = new Gson().fromJson(resStr, UUIDRequest.class);
         appendToFile(uuidFname, uuidReq.getRequestUUID());
       }
+
+      System.exit(0);
     } catch(IOException e) {
       throw e;
     }

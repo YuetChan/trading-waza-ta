@@ -8,31 +8,31 @@ import org.ta4j.core.indicators.SMAIndicator;
  */
 public class SMAGoldenCrossIndicator extends CachedIndicator<Boolean> {
 
-    private final SMAIndicator up;
-    private final SMAIndicator low;
+  private final SMAIndicator up;
+  private final SMAIndicator low;
 
-    public SMAGoldenCrossIndicator(SMAIndicator up, SMAIndicator low) {
-        super(up);
-        this.up = up;
-        this.low = low;
+  public SMAGoldenCrossIndicator(SMAIndicator up, SMAIndicator low) {
+    super(up);
+    this.up = up;
+    this.low = low;
+  }
+
+  @Override
+  protected Boolean calculate(int i) {
+    if (i == 0) {
+      return false;
     }
 
-    @Override
-    protected Boolean calculate(int i) {
-        if (i == 0) {
-            return false;
-        }
+    int curr = i;
+    int prev = i - 1;
 
-        int curr = i;
-        int prev = i - 1;
+    boolean crossed = up.getValue(prev).isGreaterThan(low.getValue(prev));
+    boolean justCrossed = up.getValue(curr).isGreaterThan(low.getValue(curr));
 
-        boolean crossed = up.getValue(prev).isGreaterThan(low.getValue(prev));
-        boolean justCrossed = up.getValue(curr).isGreaterThan(low.getValue(curr));
-
-        if(!crossed && justCrossed) {
-            return true;
-        }
-
-        return false;
+    if(!crossed && justCrossed) {
+      return true;
     }
+
+    return false;
+  }
 }

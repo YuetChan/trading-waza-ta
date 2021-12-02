@@ -10,11 +10,11 @@ import java.time.ZonedDateTime;
 @ToString
 public class Candle {
 
-    private double open;
-    private double high;
-    private double low;
-    private double close;
+  private double open;
+  private double high;
+  private double low;
+  private double close;
 
-    private ZonedDateTime startTimeZdt;
+  private ZonedDateTime startTimeZdt;
 
 }
