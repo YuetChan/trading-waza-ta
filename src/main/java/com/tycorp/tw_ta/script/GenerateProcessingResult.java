@@ -34,8 +34,8 @@ import static com.tycorp.tw_ta.lib.FileHelper.appendToFile;
  * Skip to line 84 for more details
  */
 @CommandLine.Command(
-        name = "Process",
-        description = "Process stock data based on specified indicator"
+        name = "GenerateProcessingResult",
+        description = "Processes stock data based on specified indicators"
 )
 public class GenerateProcessingResult implements Runnable {
 

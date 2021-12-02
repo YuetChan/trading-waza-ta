@@ -35,7 +35,7 @@ import static com.tycorp.tw_ta.lib.FileHelper.writeToFile;
  */
 @CommandLine.Command(
         name = "LoadDataToLocalDatasource",
-        description = "Load stock data from TD Ameritrade API into local datasource"
+        description = "Loads stock data from TD Ameritrade API into local datasource"
 )
 public class LoadDataToLocalDatasource implements Runnable {
 

@@ -32,8 +32,8 @@ import static com.tycorp.tw_ta.lib.FileHelper.appendToFile;
  *  Finally, it will execute post requests and output the result to the remote repo via API
  */
 @CommandLine.Command(
-        name = "Output",
-        description = "Output result to remote repo based on config"
+        name = "OutputResultToRemoteRepo",
+        description = "Outputs result to remote repo based on config"
 )
 public class OutputResultToRemoteRepo implements Runnable {
 
