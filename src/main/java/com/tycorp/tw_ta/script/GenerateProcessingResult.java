@@ -40,7 +40,7 @@ import static com.tycorp.tw_ta.lib.FileHelper.appendToFile;
 public class GenerateProcessingResult implements Runnable {
 
   @CommandLine.Option(
-          names = {"-s", "--save"},
+          names = {"-r", "--result"},
           required = true,
           description = "Filename that saves the result.")
   private String resultFname;
@@ -201,7 +201,7 @@ public class GenerateProcessingResult implements Runnable {
         Long endTimeAt = ithBar.getEndTime().toInstant().toEpochMilli();
         Long processedAt = Instant.now().toEpochMilli();
 
-        ZonedDateTime processedAtZdt = DateTimeHelper.truncateTime(Instant.ofEpochMilli(endTimeAt).atZone(ZoneId.of("America/New_York")));
+        ZonedDateTime processedAtZdt = DateTimeHelper.truncateTime(Instant.ofEpochMilli(processedAt).atZone(ZoneId.of("America/New_York")));
         Long truncatedProcessedAt = processedAtZdt.toInstant().toEpochMilli();
 
         String line = indicators.size() == 0

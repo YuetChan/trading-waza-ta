@@ -34,12 +34,12 @@ import static com.tycorp.tw_ta.lib.FileHelper.appendToFile;
  */
 @CommandLine.Command(
         name = "Output",
-        description = "Output stock data based on config"
+        description = "Output result to remote repo based on config"
 )
 public class OutputResultToRemoteRepo implements Runnable {
 
   @CommandLine.Option(
-          names = {"-s", "--selected"},
+          names = {"-r", "--result"},
           required = true,
           description = "Filename that contains the result from processing/backtest script.")
   private String resultFname;
@@ -59,6 +59,16 @@ public class OutputResultToRemoteRepo implements Runnable {
   @Value("${kong.apikey}")
   private String apikey;
 
+  private String signInURL = "/users/signin";
+  private String batchURL = "/rows/batch";
+
+  private JsonArray postJsonBatch = new JsonArray();
+  private JsonObject postJson = new JsonObject();
+
+  private JsonObject priceDetailJson = GsonHelper.getJsonObject();
+
+  private CloseableHttpClient httpClient = HttpClients.createDefault();
+
   @SneakyThrows
   @Override
   public void run() {
@@ -69,76 +79,68 @@ public class OutputResultToRemoteRepo implements Runnable {
 
       // load the auth config from specified file
       String domain = buffReader.readLine();
+
       String useremail = buffReader.readLine();
       String password = buffReader.readLine();
 
-      // create auth request payload
-      JsonObject authJson = new JsonObject();
-      authJson.addProperty("useremail", useremail);
-      authJson.addProperty("password", password);
-
       // create auth request
-      HttpPost authPostReq = new HttpPost(domain + "/users/signin");
+      HttpPost authPostReq = new HttpPost(domain + signInURL);
+
+      // create auth request payload
       authPostReq.addHeader("Content-Type", "application/json");
-      authPostReq.setEntity(new StringEntity(authJson.toString()));
+      authPostReq.setEntity(new StringEntity(getAuthJsonStr(useremail, password)));
 
       // execute the auth request
-      CloseableHttpClient httpClient = HttpClients.createDefault();
       CloseableHttpResponse res = httpClient.execute(authPostReq);
 
       // convert the response to string and parse it as json, then extract the jwt
       String resStr = EntityUtils.toString(res.getEntity());
-
-      String jwtStr = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
-      String jwt = jwtStr.substring(1, jwtStr.length() - 1);
+      String jwt = extractJwtStr(resStr);
 
       buffReader = new BufferedReader(new FileReader(resultFname));
-      JsonArray postJsonBatch = new JsonArray();
 
-      // extract stock data from each line
+      // extract results from each line
       for(String line = buffReader.readLine(); line != null; line = buffReader.readLine()) {
-        // stock data separated by ,
+        // result separated by ,
         String[] words = line.split(",");
 
-        // the last word is endTimeAt
-        String endTimeAtAt = words[words.length - 1];
+        // the second last word is endTimeAt
+        String endTimeAtAt = words[words.length - 2];
+        // the last word is processedAt
+        String processedAt = words[words.length - 1];
 
         // the first word is ticker
         String ticker = words[0];
-        // the word in between first and last words are tags
+
+        // the word in between first and last words are price details and indicators
         String[] priceDetail = new String[5];
         System.arraycopy(words, 1, priceDetail, 0, priceDetail.length);
 
         String[] indicators = new String[words.length - priceDetail.length - 2];
         System.arraycopy(words, 1 + priceDetail.length, indicators, 0, indicators.length);
 
-        // create post request payload
-        JsonObject postJson = new JsonObject();
-
         postJson.addProperty("endTimeAt", endTimeAtAt);
-        postJson.addProperty("processedAt", Instant.now().toEpochMilli());
+        postJson.addProperty("processedAt", processedAt);
 
         postJson.addProperty("userId", 1l);
-
         postJson.addProperty("ticker", ticker);
 
-        JsonObject priceDetailJson = GsonHelper.getJsonObject();
         priceDetailJson.addProperty("open", Double.parseDouble(priceDetail[0]));
         priceDetailJson.addProperty("high", Double.parseDouble(priceDetail[1]));
         priceDetailJson.addProperty("close", Double.parseDouble(priceDetail[2]));
         priceDetailJson.addProperty("low", Double.parseDouble(priceDetail[3]));
 
         priceDetailJson.addProperty("change", Double.parseDouble(priceDetail[4]));
-
         postJson.add("priceDetail", priceDetailJson);
+
         postJson.add("indicators", GsonHelper.createJsonElement(Arrays.asList(indicators)).getAsJsonArray());
 
-        // added to postJson Batch
+        // added to postJsonBatch
         postJsonBatch.add(postJson);
       }
 
       // create post request
-      HttpPost postPostReq = new HttpPost(domain + "/rows/batch");
+      HttpPost postPostReq = new HttpPost(domain + batchURL);
       postPostReq.addHeader("Content-Type", "application/json");
       postPostReq.setHeader("Authorization", "Bearer " + jwt);
 
@@ -160,6 +162,19 @@ public class OutputResultToRemoteRepo implements Runnable {
     } catch(IOException e) {
       throw e;
     }
+  }
+
+  public String getAuthJsonStr(String useremail, String password) {
+    JsonObject authJson = new JsonObject();
+    authJson.addProperty("useremail", useremail);
+    authJson.addProperty("password", password);
+
+    return authJson.toString();
+  }
+
+  public String extractJwtStr(String resStr) {
+    String jwt = new JsonParser().parse(resStr).getAsJsonObject().get("jwt").toString();
+    return jwt.substring(1, jwt.length() - 1);
   }
 
   public static void main(String[] args) {
