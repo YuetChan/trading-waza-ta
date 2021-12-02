@@ -1,4 +1,4 @@
-package com.tycorp.tw_ta.script;
+package com.tycorp.tw_ta.core;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
@@ -10,13 +10,11 @@ import java.util.List;
  * Helper functions for converting TwCandle into Ta4jBarSeries
  * Currently support convertion to different frequencies for daily and mins TwCandle
  */
-public class TwCandlesToTa4jBarSeries {
+public class CandlesToTa4jBarSeries {
 
-    public enum Ta4jTimeframe {
-        DAILY
-    }
+    public enum Ta4jTimeframe { DAILY }
 
-    public static BarSeries convert(List<TwCandle> candles, Ta4jTimeframe timeframe) {
+    public static BarSeries convert(List<Candle> candles, Ta4jTimeframe timeframe) {
         if(timeframe.equals(Ta4jTimeframe.DAILY)) {
             return candlesToBarSeries_daily(candles);
         }
@@ -24,7 +22,7 @@ public class TwCandlesToTa4jBarSeries {
         return null;
     }
 
-    private static BarSeries candlesToBarSeriesMinsVariance(List<TwCandle> candles, int frequency) {
+    private static BarSeries candlesToBarSeriesMinsVariance(List<Candle> candles, int frequency) {
         BarSeries barSeries = new BaseBarSeries();
 
         double factor = frequency / 5;
@@ -37,7 +35,7 @@ public class TwCandlesToTa4jBarSeries {
         ZonedDateTime endTimeZdt = null;
 
         for(int i = 0; i < candles.size() ; i ++) {
-            TwCandle ithCandle = candles.get(i);
+            Candle ithCandle = candles.get(i);
             if(i == 0) {
                 open = ithCandle.getOpen();
                 close = ithCandle.getClose();
@@ -80,10 +78,10 @@ public class TwCandlesToTa4jBarSeries {
         return barSeries;
     }
 
-    private static BarSeries candlesToBarSeries_daily(List<TwCandle> candles) {
+    private static BarSeries candlesToBarSeries_daily(List<Candle> candles) {
         BarSeries barSeries = new BaseBarSeries();
         for(int i = 0; i < candles.size(); i ++){
-            TwCandle ithCandle = candles.get(i);
+            Candle ithCandle = candles.get(i);
 
             double open = ithCandle.getOpen();
             double close = ithCandle.getClose();

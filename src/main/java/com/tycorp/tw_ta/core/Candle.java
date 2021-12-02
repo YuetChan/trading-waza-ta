@@ -1,4 +1,4 @@
-package com.tycorp.tw_ta.script;
+package com.tycorp.tw_ta.core;
 
 import lombok.*;
 
@@ -8,7 +8,7 @@ import java.time.ZonedDateTime;
 @Getter(AccessLevel.PUBLIC)
 @Setter(AccessLevel.PUBLIC)
 @ToString
-public class TwCandle {
+public class Candle {
 
     private double open;
     private double high;

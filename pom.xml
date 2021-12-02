@@ -112,7 +112,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.tycorp.tw_ta.command.LoadCommand</mainClass>
+              <mainClass>com.tycorp.tw_ta.script.LoadDataToLocalDatasource</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
